@@ -224,6 +224,63 @@ class HnswIndexNode : public IndexNode {
         GetRangeSearchResult(result_dist_array, result_id_array, is_ip, nq, radius_for_filter, range_filter, dis, ids,
                              lims);
 
+        {
+            int64_t total_valid = lims[nq];
+            if (total_valid > 0) {
+                std::vector<float> dist1(dis, dis + total_valid);
+                if (is_ip) {
+                    std::sort(dist1.begin(), dist1.end(), std::greater<>());
+                } else {
+                    std::sort(dist1.begin(), dist1.end(), std::less<>());
+                }
+                float min_dist = dist1[total_valid - 1];
+
+                std::vector<float> dist2(dis, dis + total_valid);
+                auto iter = std::find(dist2.begin(), dist2.end(), min_dist);
+                int64_t min_dist_id = ids[iter - dist2.begin()];
+                LOG_KNOWHERE_INFO_ << "Range search: is_ip " << (is_ip ? "True" : "False") << ", radius " << radius_for_filter
+                                   << ", range_filter " << range_filter << ", min id " << min_dist_id << ", min dist "
+                                   << min_dist << ", total result num " << total_valid;
+
+                // show query data
+                std::string xq_str = "";
+                for (int i = 0; i < 4; i++) {
+                    xq_str += std::to_string(((float*)xq)[i]) + ", ";
+                }
+                xq_str += "...";
+                auto dim = dataset.GetDim();
+                for (int i = dim - 4; i < dim; i++) {
+                    xq_str += std::to_string(((float*)xq)[i]) + ", ";
+                }
+                LOG_KNOWHERE_INFO_ << "query data { " << xq_str << " }";
+
+                // show base data
+                std::vector<int64_t> min_ids_vec = {min_dist_id};
+                auto min_ds = GenIdsDataSet(1, min_ids_vec.data());
+                auto min_res = GetVectorByIds(*min_ds);
+                auto min_data = (float*)min_res.value()->GetTensor();
+                std::string min_data_str = "";
+                for (int i = 0; i < 5; i++) {
+                    min_data_str += std::to_string(min_data[i]) + ", ";
+                }
+                LOG_KNOWHERE_INFO_ << "min id " << min_dist_id << ", min dist " << min_dist << ", min raw data { "
+                                   << min_data_str << "... }";
+
+//                for (int i = 1, j = 0; i < dataset.GetDim(); i++) {
+//                    if (min_data[i] != min_data[0]) {
+//                        LOG_KNOWHERE_INFO_ << "min raw data modified (" << i << ", " << min_data[i] << ")" << " expect " << min_data[0];
+//                        if (j++ > 5) {
+//                            LOG_KNOWHERE_INFO_ << "min raw data modified ...";
+//                            break;
+//                        }
+//                    }
+//                }
+            } else {
+                LOG_KNOWHERE_INFO_ << "Range search: is_ip " << (is_ip ? "True" : "False") << ", radius " << radius_for_filter
+                                   << ", range_filter " << range_filter << ", total result num " << total_valid;
+            }
+        }
+
         auto res = GenResultDataSet(nq, ids, dis, lims);
 
         // set visit_info json string into result dataset
