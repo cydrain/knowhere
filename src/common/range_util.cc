@@ -59,7 +59,7 @@ GetRangeSearchResult(const faiss::RangeSearchResult& res, const bool is_ip, cons
                      const float range_filter, float*& distances, int64_t*& labels, size_t*& lims,
                      const BitsetView& bitset) {
     auto total_valid = CountValidRangeSearchResult(res, is_ip, nq, radius, range_filter, lims);
-    LOG_KNOWHERE_DEBUG_ << "Range search: is_ip " << (is_ip ? "True" : "False") << ", radius " << radius
+    LOG_KNOWHERE_INFO_ << "Range search: is_ip " << (is_ip ? "True" : "False") << ", radius " << radius
                         << ", range_filter " << range_filter << ", total result num " << total_valid;
 
     distances = new float[total_valid];
@@ -114,8 +114,6 @@ GetRangeSearchResult(const std::vector<std::vector<float>>& result_distances,
     }
 
     size_t total_valid = lims[nq];
-    LOG_KNOWHERE_DEBUG_ << "Range search: is_ip " << (is_ip ? "True" : "False") << ", radius " << radius
-                        << ", range_filter " << range_filter << ", total result num " << total_valid;
 
     distances = new float[total_valid];
     labels = new int64_t[total_valid];
@@ -123,6 +121,21 @@ GetRangeSearchResult(const std::vector<std::vector<float>>& result_distances,
     for (auto i = 0; i < nq; i++) {
         std::copy_n(result_distances[i].data(), lims[i + 1] - lims[i], distances + lims[i]);
         std::copy_n(result_labels[i].data(), lims[i + 1] - lims[i], labels + lims[i]);
+    }
+
+    if (total_valid > 0) {
+        std::vector<float> tmp(distances, distances + total_valid);
+        if (is_ip) {
+            std::sort(tmp.begin(), tmp.end(), std::greater<>());
+        } else {
+            std::sort(tmp.begin(), tmp.end(), std::less<>());
+        }
+        LOG_KNOWHERE_INFO_ << "Range search: is_ip " << (is_ip ? "True" : "False") << ", radius " << radius
+                           << ", range_filter " << range_filter << ", min dist " << tmp[total_valid - 1]
+                           << ", total result num " << total_valid;
+    } else {
+        LOG_KNOWHERE_INFO_ << "Range search: is_ip " << (is_ip ? "True" : "False") << ", radius " << radius
+                           << ", range_filter " << range_filter << ", total result num " << total_valid;
     }
 }
 
