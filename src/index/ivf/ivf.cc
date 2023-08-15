@@ -395,11 +395,7 @@ IvfIndexNode<T>::Search(const DataSet& dataset, const Config& cfg, const BitsetV
     auto data = dataset.GetTensor();
 
     const IvfConfig& ivf_cfg = static_cast<const IvfConfig&>(cfg);
-
-    // do normalize for COSINE metric type
-    if (IsMetricType(ivf_cfg.metric_type.value(), knowhere::metric::COSINE)) {
-        Normalize(dataset);
-    }
+    bool is_cosine = IsMetricType(ivf_cfg.metric_type.value(), knowhere::metric::COSINE);
 
     auto k = ivf_cfg.k.value();
     auto nprobe = ivf_cfg.nprobe.value();
@@ -423,17 +419,34 @@ IvfIndexNode<T>::Search(const DataSet& dataset, const Config& cfg, const BitsetV
                         }
                     }
                 } else if constexpr (std::is_same<T, faiss::IndexIVFFlat>::value) {
-                    auto cur_data = (const float*)data + index * dim;
-                    index_->search_without_codes_thread_safe(1, cur_data, k, distances + offset, ids + offset, nprobe,
-                                                             0, bitset);
+                    auto cur_query = (const float*)data + index * dim;
+                    if (is_cosine) {
+                        auto cur_query_norm = CopyAndNormalizeFloatVec(cur_query, dim);
+                        index_->search_without_codes_thread_safe(1, cur_query_norm.get(), k, distances + offset,
+                                                                 ids + offset, nprobe, 0, bitset);
+                    } else {
+                        index_->search_without_codes_thread_safe(1, cur_query, k, distances + offset, ids + offset,
+                                                                 nprobe, 0, bitset);
+                    }
                 } else if constexpr (std::is_same<T, faiss::IndexScaNN>::value) {
-                    auto cur_data = (const float*)data + index * dim;
+                    auto cur_query = (const float*)data + index * dim;
                     const ScannConfig& scann_cfg = static_cast<const ScannConfig&>(cfg);
-                    index_->search_thread_safe(1, cur_data, k, distances + offset, ids + offset, nprobe,
-                                               scann_cfg.reorder_k.value(), bitset);
+                    if (is_cosine) {
+                        auto cur_query_norm = CopyAndNormalizeFloatVec(cur_query, dim);
+                        index_->search_thread_safe(1, cur_query_norm.get(), k, distances + offset, ids + offset, nprobe,
+                                                   scann_cfg.reorder_k.value(), bitset);
+                    } else {
+                        index_->search_thread_safe(1, cur_query, k, distances + offset, ids + offset, nprobe,
+                                                   scann_cfg.reorder_k.value(), bitset);
+                    }
                 } else {
-                    auto cur_data = (const float*)data + index * dim;
-                    index_->search_thread_safe(1, cur_data, k, distances + offset, ids + offset, nprobe, 0, bitset);
+                    auto cur_query = (const float*)data + index * dim;
+                    if (is_cosine) {
+                        auto cur_query_norm = CopyAndNormalizeFloatVec(cur_query, dim);
+                        index_->search_thread_safe(1, cur_query_norm.get(), k, distances + offset, ids + offset, nprobe, 0, bitset);
+                    } else {
+                        index_->search_thread_safe(1, cur_query, k, distances + offset, ids + offset, nprobe, 0, bitset);
+                    }
                 }
             }));
         }
@@ -468,11 +481,7 @@ IvfIndexNode<T>::RangeSearch(const DataSet& dataset, const Config& cfg, const Bi
     auto dim = dataset.GetDim();
 
     const IvfConfig& ivf_cfg = static_cast<const IvfConfig&>(cfg);
-
-    // do normalize for COSINE metric type
-    if (IsMetricType(ivf_cfg.metric_type.value(), knowhere::metric::COSINE)) {
-        Normalize(dataset);
-    }
+    bool is_cosine = IsMetricType(ivf_cfg.metric_type.value(), knowhere::metric::COSINE);
 
     float radius = ivf_cfg.radius.value();
     float range_filter = ivf_cfg.range_filter.value();
@@ -498,14 +507,32 @@ IvfIndexNode<T>::RangeSearch(const DataSet& dataset, const Config& cfg, const Bi
                     auto cur_data = (const uint8_t*)xq + index * dim / 8;
                     index_->range_search_thread_safe(1, cur_data, radius, &res, index_->nlist, bitset);
                 } else if constexpr (std::is_same<T, faiss::IndexIVFFlat>::value) {
-                    auto cur_data = (const float*)xq + index * dim;
-                    index_->range_search_without_codes_thread_safe(1, cur_data, radius, &res, index_->nlist, 0, bitset);
+                    auto cur_query = (const float*)xq + index * dim;
+                    if (is_cosine) {
+                        auto cur_query_norm = CopyAndNormalizeFloatVec(cur_query, dim);
+                        index_->range_search_without_codes_thread_safe(1, cur_query_norm.get(), radius, &res,
+                                                                       index_->nlist, 0, bitset);
+                    } else {
+                        index_->range_search_without_codes_thread_safe(1, cur_query, radius, &res, index_->nlist, 0,
+                                                                       bitset);
+                    }
                 } else if constexpr (std::is_same<T, faiss::IndexScaNN>::value) {
-                    auto cur_data = (const float*)xq + index * dim;
-                    index_->range_search_thread_safe(1, cur_data, radius, &res, bitset);
+                    auto cur_query = (const float*)xq + index * dim;
+                    if (is_cosine) {
+                        auto cur_query_norm = CopyAndNormalizeFloatVec(cur_query, dim);
+                        index_->range_search_thread_safe(1, cur_query_norm.get(), radius, &res, bitset);
+                    } else {
+                        index_->range_search_thread_safe(1, cur_query, radius, &res, bitset);
+                    }
                 } else {
-                    auto cur_data = (const float*)xq + index * dim;
-                    index_->range_search_thread_safe(1, cur_data, radius, &res, index_->nlist, 0, bitset);
+                    auto cur_query = (const float*)xq + index * dim;
+                    if (is_cosine) {
+                        auto cur_query_norm = CopyAndNormalizeFloatVec(cur_query, dim);
+                        index_->range_search_thread_safe(1, cur_query_norm.get(), radius, &res, index_->nlist, 0,
+                                                         bitset);
+                    } else {
+                        index_->range_search_thread_safe(1, cur_query, radius, &res, index_->nlist, 0, bitset);
+                    }
                 }
                 auto elem_cnt = res.lims[1];
                 result_dist_array[index].resize(elem_cnt);
