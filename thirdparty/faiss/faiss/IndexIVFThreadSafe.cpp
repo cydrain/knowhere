@@ -684,8 +684,8 @@ void IndexIVF::range_search_preassigned_without_codes(
 
             for (size_t ik = 0; ik < nprobe; ik++) {
                 scan_list_func(i, ik, qres, bitset);
-                if (qres.nres == prev_nres) break;
-                prev_nres = qres.nres;
+                // if (qres.nres == prev_nres) break;
+                // prev_nres = qres.nres;
             }
         }
         pres.finalize();

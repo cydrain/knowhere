@@ -479,6 +479,8 @@ IvfIndexNode<T>::RangeSearch(const DataSet& dataset, const Config& cfg, const Bi
     const IvfConfig& ivf_cfg = static_cast<const IvfConfig&>(cfg);
     bool is_cosine = IsMetricType(ivf_cfg.metric_type.value(), knowhere::metric::COSINE);
 
+    auto nprobe = ivf_cfg.nprobe.value();
+
     float radius = ivf_cfg.radius.value();
     float range_filter = ivf_cfg.range_filter.value();
     bool is_ip = (index_->metric_type == faiss::METRIC_INNER_PRODUCT);
@@ -502,7 +504,7 @@ IvfIndexNode<T>::RangeSearch(const DataSet& dataset, const Config& cfg, const Bi
                 std::unique_ptr<float[]> copied_query = nullptr;
                 if constexpr (std::is_same<T, faiss::IndexBinaryIVF>::value) {
                     auto cur_data = (const uint8_t*)xq + index * dim / 8;
-                    index_->range_search_thread_safe(1, cur_data, radius, &res, index_->nlist, bitset);
+                    index_->range_search_thread_safe(1, cur_data, radius, &res, nprobe, bitset);
                 } else if constexpr (std::is_same<T, faiss::IndexIVFFlat>::value) {
                     auto cur_query = (const float*)xq + index * dim;
                     if (is_cosine) {
@@ -520,8 +522,7 @@ IvfIndexNode<T>::RangeSearch(const DataSet& dataset, const Config& cfg, const Bi
                             }
                         }
                     }
-                    index_->range_search_without_codes_thread_safe(1, cur_query, radius, &res, index_->nlist, 0,
-                                                                   bitset);
+                    index_->range_search_without_codes_thread_safe(1, cur_query, radius, &res, nprobe, 0, bitset);
                 } else if constexpr (std::is_same<T, faiss::IndexScaNN>::value) {
                     auto cur_query = (const float*)xq + index * dim;
                     if (is_cosine) {
@@ -535,7 +536,7 @@ IvfIndexNode<T>::RangeSearch(const DataSet& dataset, const Config& cfg, const Bi
                         copied_query = CopyAndNormalizeFloatVec(cur_query, dim);
                         cur_query = copied_query.get();
                     }
-                    index_->range_search_thread_safe(1, cur_query, radius, &res, index_->nlist, 0, bitset);
+                    index_->range_search_thread_safe(1, cur_query, radius, &res, nprobe, 0, bitset);
                 }
                 auto elem_cnt = res.lims[1];
                 result_dist_array[index].resize(elem_cnt);

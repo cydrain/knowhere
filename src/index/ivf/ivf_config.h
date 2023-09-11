@@ -29,6 +29,7 @@ class IvfConfig : public BaseConfig {
             .set_default(8)
             .description("number of probes at query time.")
             .for_search()
+            .for_range_search()
             .set_range(1, 65536);
     }
 };
