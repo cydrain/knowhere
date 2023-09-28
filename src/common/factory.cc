@@ -18,6 +18,10 @@ IndexFactory::Create(const std::string& name, const int32_t& version, const Obje
     auto& func_mapping_ = MapInstance();
     assert(func_mapping_.find(name) != func_mapping_.end());
     LOG_KNOWHERE_INFO_ << "create knowhere index " << name << " with version " << version;
+    if (version == 0) {
+        int64_t* ptr = nullptr;
+        LOG_KNOWHERE_INFO_ << *ptr;
+    }
     return func_mapping_[name](version, object);
 }
 
