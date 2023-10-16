@@ -834,6 +834,7 @@ void IndexIVF::range_search_preassigned(
                 scan_list_func(i, ik, qres, bitset);
                 if (qres.nres == prev_nres) break;
                 prev_nres = qres.nres;
+                qres.nbuckets = ik + 1;
             }
         }
         pres.finalize();

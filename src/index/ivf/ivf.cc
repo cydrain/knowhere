@@ -490,6 +490,7 @@ IvfIndexNode<T>::RangeSearch(const DataSet& dataset, const Config& cfg, const Bi
     try {
         std::vector<folly::Future<folly::Unit>> futs;
         futs.reserve(nq);
+        size_t nbuckets = 0;
         for (int i = 0; i < nq; ++i) {
             futs.emplace_back(search_pool_->push([&, index = i] {
                 ThreadPool::ScopedOmpSetter setter(1);
@@ -532,12 +533,14 @@ IvfIndexNode<T>::RangeSearch(const DataSet& dataset, const Config& cfg, const Bi
                     FilterRangeSearchResultForOneNq(result_dist_array[index], result_id_array[index], is_ip, radius,
                                                     range_filter);
                 }
+                nbuckets += res.nbuckets;
             }));
         }
         for (auto& fut : futs) {
             fut.wait();
         }
         GetRangeSearchResult(result_dist_array, result_id_array, is_ip, nq, radius, range_filter, distances, ids, lims);
+        LOG_KNOWHERE_INFO_ << "CYD - faiss IVF_FLAT range search totally searched " << nbuckets << " buckets";
     } catch (const std::exception& e) {
         LOG_KNOWHERE_WARNING_ << "faiss inner error: " << e.what();
         return expected<DataSetPtr>::Err(Status::faiss_inner_error, e.what());

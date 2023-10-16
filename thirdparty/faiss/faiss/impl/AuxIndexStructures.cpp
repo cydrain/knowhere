@@ -47,6 +47,7 @@ void RangeSearchResult::do_allocation() {
     lims[nq] = ofs;
     labels = new idx_t[ofs];
     distances = new float[ofs];
+    nbuckets = 0;
 }
 
 RangeSearchResult::~RangeSearchResult() {
@@ -132,7 +133,7 @@ RangeSearchPartialResult::RangeSearchPartialResult(RangeSearchResult* res_in)
 
 /// begin a new result
 RangeQueryResult& RangeSearchPartialResult::new_result(idx_t qno) {
-    RangeQueryResult qres = {qno, 0, this};
+    RangeQueryResult qres = {qno, 0, 0, this};
     queries.push_back(qres);
     return queries.back();
 }
@@ -171,6 +172,7 @@ void RangeSearchPartialResult::copy_result(bool incremental) {
             res->lims[qres.qno] += qres.nres;
         }
         ofs += qres.nres;
+        res->nbuckets += qres.nbuckets;
     }
 }
 

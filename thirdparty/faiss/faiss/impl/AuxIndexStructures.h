@@ -40,6 +40,7 @@ struct RangeSearchResult {
     float* distances; ///< corresponding distances (not sorted)
 
     size_t buffer_size; ///< size of the result buffers used
+    size_t nbuckets;    ///< num of total searched buckets
 
     /// lims must be allocated on input to range_search.
     explicit RangeSearchResult(idx_t nq, bool alloc_lims = true);
@@ -149,6 +150,7 @@ struct RangeQueryResult {
     using idx_t = Index::idx_t;
     idx_t qno;   //< id of the query
     size_t nres; //< nb of results for this query
+    size_t nbuckets; //< num of total buckets searched
     RangeSearchPartialResult* pres;
 
     /// called by search function to report a new result
