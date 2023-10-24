@@ -396,7 +396,7 @@ void range_search_with_parameters(
     double t2 = getmillisecs();
 
     index_ivf->range_search_preassigned(
-            n, x, radius, Iq.data(), Dq.data(), result, false, params);
+            n, x, radius, 0, Iq.data(), Dq.data(), result, false, params);
 
     double t3 = getmillisecs();
     if (ms_per_stage) {

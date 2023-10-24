@@ -176,12 +176,13 @@ void IndexPreTransform::range_search(
         idx_t n,
         const float* x,
         float radius,
+        float range_filter,
         RangeSearchResult* result,
         const BitsetView bitset) const {
     FAISS_THROW_IF_NOT(is_trained);
     const float* xt = apply_chain(n, x);
     ScopeDeleter<float> del(xt == x ? nullptr : xt);
-    index->range_search(n, xt, radius, result);
+    index->range_search(n, xt, radius, range_filter, result);
 }
 
 void IndexPreTransform::reset() {

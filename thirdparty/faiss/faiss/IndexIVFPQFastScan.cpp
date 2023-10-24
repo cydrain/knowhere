@@ -773,6 +773,7 @@ void IndexIVFPQFastScan::range_search_thread_safe(
         idx_t n,
         const float* x,
         float radius,
+        float range_filter,
         RangeSearchResult* result,
         const size_t nprobe,
         const BitsetView bitset) const {

@@ -108,6 +108,7 @@ void IndexFlat::range_search(
         idx_t n,
         const float* x,
         float radius,
+        float range_filter,
         RangeSearchResult* result,
         const BitsetView bitset) const {
     switch (metric_type) {

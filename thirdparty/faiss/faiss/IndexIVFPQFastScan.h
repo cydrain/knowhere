@@ -126,6 +126,7 @@ struct IndexIVFPQFastScan : IndexIVF {
             idx_t n,
             const float* x,
             float radius,
+            float range_filter,
             RangeSearchResult* result,
             const size_t nprobe,
             const BitsetView bitset = nullptr) const;

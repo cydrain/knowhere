@@ -173,10 +173,11 @@ class FlatIndexNode : public IndexNode {
                             copied_query = CopyAndNormalizeVecs(cur_query, 1, dim);
                             cur_query = copied_query.get();
                         }
-                        index_->range_search(1, cur_query, radius, &res, bitset);
+                        index_->range_search(1, cur_query, radius, range_filter, &res, bitset);
                     }
                     if constexpr (std::is_same<T, faiss::IndexBinaryFlat>::value) {
-                        index_->range_search(1, (const uint8_t*)xq + index * dim / 8, radius, &res, bitset);
+                        index_->range_search(1, (const uint8_t*)xq + index * dim / 8, radius, range_filter, &res,
+                                             bitset);
                     }
                     auto elem_cnt = res.lims[1];
                     result_dist_array[index].resize(elem_cnt);

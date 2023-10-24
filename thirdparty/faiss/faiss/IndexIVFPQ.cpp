@@ -1101,6 +1101,7 @@ struct IVFPQScanner : IVFPQScannerT<Index::idx_t, METRIC_TYPE, PQDecoder>,
             const float* code_norms,
             const idx_t* ids,
             float radius,
+            float range_filter,
             RangeQueryResult& rres,
             const BitsetView bitset = nullptr) const override {
         RangeSearchResults<C> res = {

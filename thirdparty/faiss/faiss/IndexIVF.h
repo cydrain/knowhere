@@ -241,6 +241,7 @@ struct IndexIVF : Index, Level1Quantizer {
             idx_t n,
             const float* x,
             float radius,
+            float range_filter,
             RangeSearchResult* result,
             const BitsetView bitset = nullptr) const override;
 
@@ -248,6 +249,7 @@ struct IndexIVF : Index, Level1Quantizer {
             idx_t n,
             const float* x,
             float radius,
+            float range_filter,
             RangeSearchResult* result,
             const size_t nprobe,
             const size_t max_codes,
@@ -257,6 +259,7 @@ struct IndexIVF : Index, Level1Quantizer {
             idx_t nx,
             const float* x,
             float radius,
+            float range_filter,
             const idx_t* keys,
             const float* coarse_dis,
             RangeSearchResult* result,
@@ -395,6 +398,7 @@ struct InvertedListScanner {
     using idx_t = Index::idx_t;
 
     idx_t list_no = -1;    ///< remember current list
+    float list_dist = 0.0;
     bool keep_max = false; ///< keep maximum instead of minimum
     /// store positions in invlists rather than labels
     bool store_pairs = false;
@@ -443,6 +447,7 @@ struct InvertedListScanner {
             const float* code_norms,
             const idx_t* ids,
             float radius,
+            float range_filter,
             RangeQueryResult& result,
             const BitsetView bitset = nullptr) const;
 

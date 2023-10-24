@@ -28,6 +28,7 @@ void Index::range_search(
         idx_t,
         const float*,
         float,
+        float,
         RangeSearchResult*,
         const BitsetView) const {
     FAISS_THROW_MSG("range search not implemented");

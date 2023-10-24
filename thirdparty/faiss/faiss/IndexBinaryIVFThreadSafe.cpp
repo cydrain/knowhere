@@ -173,12 +173,13 @@ struct IVFBinaryScannerL2 : BinaryInvertedListScanner {
             const uint8_t* codes,
             const idx_t* ids,
             float radius,
+            float range_filter,
             RangeQueryResult& result,
             const BitsetView bitset) const override {
         for (size_t j = 0; j < n; j++) {
             if (bitset.empty() || !bitset.test(ids[j])) {
                 float dis = hc.compute(codes);
-                if (dis < radius) {
+                if (range_filter <= dis && dis < radius) {
                     int64_t id = store_pairs ? lo_build(list_no, j) : ids[j];
                     result.add(dis, id);
                 }
@@ -238,12 +239,13 @@ struct IVFBinaryScannerJaccard : BinaryInvertedListScanner {
             const uint8_t* codes,
             const idx_t* ids,
             float radius,
+            float range_filter,
             RangeQueryResult& result,
             const BitsetView bitset) const override {
         for (size_t j = 0; j < n; j++) {
             if (bitset.empty() || !bitset.test(ids[j])) {
                 float dis = hc.compute(codes);
-                if (dis < radius) {
+                if (range_filter <= dis && dis < radius) {
                     idx_t id = store_pairs ? lo_build(list_no, j) : ids[j];
                     result.add(dis, id);
                 }
@@ -728,6 +730,7 @@ void IndexBinaryIVF::range_search_thread_safe(
         idx_t n,
         const uint8_t* x,
         float radius,
+        float range_filter,
         RangeSearchResult* res,
         size_t nprobe,
         const BitsetView bitset) const {
@@ -742,7 +745,7 @@ void IndexBinaryIVF::range_search_thread_safe(
     t0 = getmillisecs();
     invlists->prefetch_lists(idx.get(), n * nprobe);
     range_search_preassigned_thread_safe(
-            n, x, radius, idx.get(), coarse_dis.get(), res, nprobe, bitset);
+            n, x, radius, range_filter, idx.get(), coarse_dis.get(), res, nprobe, bitset);
     indexIVF_stats.search_time += getmillisecs() - t0;
 }
 
@@ -750,6 +753,7 @@ void IndexBinaryIVF::range_search_preassigned_thread_safe(
         idx_t n,
         const uint8_t* x,
         float radius,
+        float range_filter,
         const idx_t* assign,
         const int32_t* centroid_dis,
         RangeSearchResult* res,
@@ -792,7 +796,7 @@ void IndexBinaryIVF::range_search_preassigned_thread_safe(
             nlistv++;
             ndis += list_size;
             scanner->scan_codes_range(
-                    list_size, scodes.get(), ids.get(), radius, qres, bitset);
+                    list_size, scodes.get(), ids.get(), radius, range_filter, qres, bitset);
         };
 
 #pragma omp for

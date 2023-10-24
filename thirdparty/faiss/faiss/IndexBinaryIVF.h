@@ -148,6 +148,7 @@ struct IndexBinaryIVF : IndexBinary {
             idx_t n,
             const uint8_t* x,
             float radius,
+            float range_filter,
             RangeSearchResult* result,
             const BitsetView bitset = nullptr) const override;
 
@@ -164,6 +165,7 @@ struct IndexBinaryIVF : IndexBinary {
             idx_t n,
             const uint8_t* x,
             float radius,
+            float range_filter,
             const idx_t* assign,
             const int32_t* centroid_dis,
             RangeSearchResult* result,
@@ -238,6 +240,7 @@ struct IndexBinaryIVF : IndexBinary {
             idx_t n,
             const uint8_t* x,
             float radius,
+            float range_filter,
             RangeSearchResult* res,
             size_t nprobe,
             const BitsetView bitset) const;
@@ -245,6 +248,7 @@ struct IndexBinaryIVF : IndexBinary {
             idx_t n,
             const uint8_t* x,
             float radius,
+            float range_filter,
             const idx_t* assign,
             const int32_t* centroid_dis,
             RangeSearchResult* res,
@@ -300,6 +304,7 @@ struct BinaryInvertedListScanner {
             const uint8_t* codes,
             const idx_t* ids,
             float radius,
+            float range_filter,
             RangeQueryResult& result,
             const BitsetView bitset = nullptr) const = 0;
 

@@ -110,6 +110,7 @@ struct IndexIVFFlatDedup : IndexIVFFlat {
             idx_t n,
             const float* x,
             float radius,
+            float range_filter,
             RangeSearchResult* result,
             const BitsetView bitset = nullptr) const override;
 

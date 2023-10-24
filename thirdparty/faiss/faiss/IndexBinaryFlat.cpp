@@ -104,6 +104,7 @@ void IndexBinaryFlat::range_search(
         idx_t n,
         const uint8_t* x,
         float radius,
+        float range_filter,
         RangeSearchResult* result,
         const BitsetView bitset) const {
     switch (metric_type) {

@@ -216,6 +216,7 @@ void IndexBinaryHash::range_search(
         idx_t n,
         const uint8_t* x,
         float radius,
+        float range_filter,
         RangeSearchResult* result,
         const BitsetView bitset) const {
     size_t nlist = 0, ndis = 0, n0 = 0;
@@ -433,6 +434,7 @@ void IndexBinaryMultiHash::range_search(
         idx_t n,
         const uint8_t* x,
         float radius,
+        float range_filter,
         RangeSearchResult* result,
         const BitsetView bitset) const {
     size_t nlist = 0, ndis = 0, n0 = 0;

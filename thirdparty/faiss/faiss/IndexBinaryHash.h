@@ -50,6 +50,7 @@ struct IndexBinaryHash : IndexBinary {
             idx_t n,
             const uint8_t* x,
             float radius,
+            float range_filter,
             RangeSearchResult* result,
             const BitsetView bitset = nullptr) const override;
 
@@ -109,6 +110,7 @@ struct IndexBinaryMultiHash : IndexBinary {
             idx_t n,
             const uint8_t* x,
             float radius,
+            float range_filter,
             RangeSearchResult* result,
             const BitsetView bitset = nullptr) const override;
 

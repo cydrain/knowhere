@@ -503,28 +503,30 @@ IvfIndexNode<T>::RangeSearch(const DataSet& dataset, const Config& cfg, const Bi
                 std::unique_ptr<float[]> copied_query = nullptr;
                 if constexpr (std::is_same<T, faiss::IndexBinaryIVF>::value) {
                     auto cur_data = (const uint8_t*)xq + index * dim / 8;
-                    index_->range_search_thread_safe(1, cur_data, radius, &res, index_->nlist, bitset);
+                    index_->range_search_thread_safe(1, cur_data, radius, range_filter, &res, index_->nlist, bitset);
                 } else if constexpr (std::is_same<T, faiss::IndexIVFFlat>::value) {
                     auto cur_query = (const float*)xq + index * dim;
                     if (is_cosine) {
                         copied_query = CopyAndNormalizeVecs(cur_query, 1, dim);
                         cur_query = copied_query.get();
                     }
-                    index_->range_search_thread_safe(1, cur_query, radius, &res, index_->nlist, 0, bitset);
+                    index_->range_search_thread_safe(1, cur_query, radius, range_filter, &res, index_->nlist, 0,
+                                                     bitset);
                 } else if constexpr (std::is_same<T, faiss::IndexScaNN>::value) {
                     auto cur_query = (const float*)xq + index * dim;
                     if (is_cosine) {
                         copied_query = CopyAndNormalizeVecs(cur_query, 1, dim);
                         cur_query = copied_query.get();
                     }
-                    index_->range_search_thread_safe(1, cur_query, radius, &res, bitset);
+                    index_->range_search_thread_safe(1, cur_query, radius, range_filter, &res, bitset);
                 } else {
                     auto cur_query = (const float*)xq + index * dim;
                     if (is_cosine) {
                         copied_query = CopyAndNormalizeVecs(cur_query, 1, dim);
                         cur_query = copied_query.get();
                     }
-                    index_->range_search_thread_safe(1, cur_query, radius, &res, index_->nlist, 0, bitset);
+                    index_->range_search_thread_safe(1, cur_query, radius, range_filter, &res, index_->nlist, 0,
+                                                     bitset);
                 }
                 auto elem_cnt = res.lims[1];
                 result_dist_array[index].resize(elem_cnt);

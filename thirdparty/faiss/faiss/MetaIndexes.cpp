@@ -93,9 +93,10 @@ void IndexIDMapTemplate<IndexT>::range_search(
         typename IndexT::idx_t n,
         const typename IndexT::component_t* x,
         float radius,
+        float range_filter,
         RangeSearchResult* result,
         const BitsetView bitset) const {
-    index->range_search(n, x, radius, result, bitset);
+    index->range_search(n, x, radius, range_filter, result, bitset);
 #pragma omp parallel for
     for (idx_t i = 0; i < result->lims[result->nq]; i++) {
         result->labels[i] = result->labels[i] < 0 ? result->labels[i]

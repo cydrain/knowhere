@@ -193,6 +193,7 @@ void IndexScaNN::range_search_thread_safe(
         idx_t n,
         const float* x,
         float radius,
+        float range_filter,
         RangeSearchResult* result,
         const BitsetView bitset) const {
     FAISS_THROW_IF_NOT(n == 1);  // currently knowhere will split nq to 1
@@ -201,7 +202,7 @@ void IndexScaNN::range_search_thread_safe(
     auto base = dynamic_cast<const IndexIVFPQFastScan*>(base_index);
     FAISS_THROW_IF_NOT(base);
 
-    base->range_search_thread_safe(n, x, radius, result, base->nlist, bitset);
+    base->range_search_thread_safe(n, x, radius, range_filter, result, base->nlist, bitset);
 
     // nothing to refine, directly return the result
     if (refine_index == nullptr) {

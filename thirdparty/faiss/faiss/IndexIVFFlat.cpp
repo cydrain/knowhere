@@ -171,8 +171,9 @@ struct IVFFlatScanner : InvertedListScanner {
         this->xi = query;
     }
 
-    void set_list(idx_t list_no, float /* coarse_dis */) override {
+    void set_list(idx_t list_no, float coarse_dis) override {
         this->list_no = list_no;
+        this->list_dist = coarse_dis;
     }
 
     float distance_to_code(const uint8_t* code) const override {
@@ -219,8 +220,12 @@ struct IVFFlatScanner : InvertedListScanner {
             const float* code_norms,
             const idx_t* ids,
             float radius,
+            float range_filter,
             RangeQueryResult& res,
             const BitsetView bitset) const override {
+        if (!(C::cmp(radius, list_dist) && C::cmp(list_dist, range_filter))) {
+            return;
+        }
         const float* list_vecs = (const float*)codes;
         for (size_t j = 0; j < list_size; j++) {
             if (bitset.empty() || !bitset.test(ids[j])) {
@@ -231,7 +236,7 @@ struct IVFFlatScanner : InvertedListScanner {
                 if (code_norms) {
                     dis /= code_norms[j];
                 }
-                if (C::cmp(radius, dis)) {
+                if (C::cmp(radius, dis) && C::cmp(dis, range_filter)) {
                     int64_t id = store_pairs ? lo_build(list_no, j) : ids[j];
                     res.add(dis, id);
                 }
@@ -512,6 +517,7 @@ size_t IndexIVFFlatDedup::remove_ids(const IDSelector& sel) {
 void IndexIVFFlatDedup::range_search(
         idx_t,
         const float*,
+        float,
         float,
         RangeSearchResult*,
         const BitsetView) const {

@@ -700,6 +700,7 @@ void IndexIVF::range_search(
         idx_t nx,
         const float* x,
         float radius,
+        float range_filter,
         RangeSearchResult* result,
         const BitsetView bitset) const {
     const size_t nprobe = std::min(nlist, this->nprobe);
@@ -717,6 +718,7 @@ void IndexIVF::range_search(
             nx,
             x,
             radius,
+            range_filter,
             keys.get(),
             coarse_dis.get(),
             result,
@@ -732,6 +734,7 @@ void IndexIVF::range_search_preassigned(
         idx_t nx,
         const float* x,
         float radius,
+        float range_filter,
         const idx_t* keys,
         const float* coarse_dis,
         RangeSearchResult* result,
@@ -812,6 +815,7 @@ void IndexIVF::range_search_preassigned(
                             scode_norms.get(),
                             ids.get(),
                             radius,
+                            range_filter,
                             qres,
                             bitset);
                 }
@@ -828,12 +832,9 @@ void IndexIVF::range_search_preassigned(
             scanner->set_query(x + i * d);
 
             RangeQueryResult& qres = pres.new_result(i);
-            size_t prev_nres = qres.nres;
 
             for (size_t ik = 0; ik < nprobe; ik++) {
                 scan_list_func(i, ik, qres, bitset);
-                if (qres.nres == prev_nres) break;
-                prev_nres = qres.nres;
             }
         }
         pres.finalize();
@@ -1224,8 +1225,13 @@ void InvertedListScanner::scan_codes_range(
         const float* code_norms,
         const idx_t* ids,
         float radius,
+        float range_filter,
         RangeQueryResult& res,
         const BitsetView bitset) const {
+    if ((!keep_max && !(range_filter <= list_dist && list_dist < radius)) ||
+        (keep_max && !(range_filter >= list_dist && list_dist > radius))) {
+        return;
+    }
     for (size_t j = 0; j < list_size; j++) {
         if (bitset.empty() || !bitset.test(j)) {
             float dis = distance_to_code(codes);
@@ -1233,8 +1239,8 @@ void InvertedListScanner::scan_codes_range(
                 dis /= code_norms[j];
             }
             bool keep = !keep_max
-                    ? dis < radius
-                    : dis > radius; // TODO templatize to remove this test
+                    ? (range_filter <= dis && dis < radius)
+                    : (range_filter >= dis && dis > radius); // TODO templatize to remove this test
             if (keep) {
                 int64_t id = store_pairs ? lo_build(list_no, j) : ids[j];
                 res.add(dis, id);

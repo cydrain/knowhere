@@ -25,6 +25,7 @@ void IndexBinary::range_search(
         idx_t,
         const uint8_t*,
         float,
+        float,
         RangeSearchResult*,
         const BitsetView) const {
     FAISS_THROW_MSG("range search not implemented");
