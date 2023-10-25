@@ -768,6 +768,8 @@ void IndexIVF::range_search_preassigned(
                      : pmode == 1 ? nprobe > 1
                                   : nprobe * nx > 1);
 
+    bool is_ip = (this->metric_type == MetricType::METRIC_INNER_PRODUCT);
+
 #pragma omp parallel if (do_parallel) reduction(+ : nlistv, ndis)
     {
         RangeSearchPartialResult pres(result);
@@ -830,11 +832,34 @@ void IndexIVF::range_search_preassigned(
 #pragma omp for
         for (idx_t i = 0; i < nx; i++) {
             scanner->set_query(x + i * d);
-
             RangeQueryResult& qres = pres.new_result(i);
 
-            for (size_t ik = 0; ik < nprobe; ik++) {
-                scan_list_func(i, ik, qres, bitset);
+            int32_t start = -1, end = -1;
+            for (int32_t j = 0; j < nprobe; j++) {
+                float dist = coarse_dis[i * nprobe + j];
+                if ((!is_ip && (range_filter <= dist && dist <= radius)) ||
+                    (is_ip && (range_filter >= dist && dist >= radius))) {
+                    start = j;
+                    break;
+                }
+            }
+            for (int32_t j = nprobe - 1; j >= 0; j--) {
+                float dist = coarse_dis[i * nprobe + j];
+                if ((!is_ip && (range_filter <= dist && dist <= radius)) ||
+                    (is_ip && (range_filter >= dist && dist >= radius))) {
+                    end = j;
+                    break;
+                }
+            }
+
+            // extend start/end
+            if (start != -1 && end != -1) {
+                start = (start > 0) ? (start - 1) : 0;
+                end = (end < nprobe - 1) ? (end + 1) : (nprobe - 1);
+
+                for (int32_t ik = start; ik <= end; ik++) {
+                    scan_list_func(i, ik, qres, bitset);
+                }
             }
         }
         pres.finalize();
@@ -1228,10 +1253,6 @@ void InvertedListScanner::scan_codes_range(
         float range_filter,
         RangeQueryResult& res,
         const BitsetView bitset) const {
-    if ((!keep_max && !(range_filter <= list_dist && list_dist < radius)) ||
-        (keep_max && !(range_filter >= list_dist && list_dist > radius))) {
-        return;
-    }
     for (size_t j = 0; j < list_size; j++) {
         if (bitset.empty() || !bitset.test(j)) {
             float dis = distance_to_code(codes);
