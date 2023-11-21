@@ -1465,6 +1465,7 @@ namespace diskann {
     bool stop_flag = false;
 
     _u32 l_search = min_l_search;  // starting size of the candidate list
+    int loop = 0;
     while (!stop_flag) {
       indices.resize(l_search);
       distances.resize(l_search);
@@ -1474,6 +1475,12 @@ namespace diskann {
                                indices.data(), distances.data(), beam_width,
                                false, stats, nullptr, bitset_view);
       for (_u32 i = 0; i < l_search; i++) {
+        if (i == 0) {
+          LOG(INFO) << "CYD - diskann range search loop " << loop
+                    << ", l_search " << l_search << " (" << indices[0]
+                    << ", " << distances[0] << ") ~ (" << indices[l_search - 1]
+                    << ", " << distances[l_search - 1] << ")";
+        }
         if (indices[i] == -1) {
           res_count = i;
           break;
@@ -1495,7 +1502,10 @@ namespace diskann {
       l_search = l_search * 2;
       if (l_search > max_l_search)
         stop_flag = true;
+      loop++;
     }
+    LOG(INFO) << "CYD - diskann range search done, range " << range << ", ("
+              << min_l_search << ", " << max_l_search << "), " << res_count;
     indices.resize(res_count);
     distances.resize(res_count);
     return res_count;

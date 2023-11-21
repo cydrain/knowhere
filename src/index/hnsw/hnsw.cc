@@ -221,6 +221,7 @@ class HnswIndexNode : public IndexNode {
         }
 
         // filter range search result
+        LOG_KNOWHERE_INFO_ << "CYD - " << __FILE__ << ", " << __FUNCTION__ << ":" << __LINE__;
         GetRangeSearchResult(result_dist_array, result_id_array, is_ip, nq, radius_for_filter, range_filter, dis, ids,
                              lims);
 

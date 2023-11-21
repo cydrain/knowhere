@@ -554,6 +554,7 @@ IvfIndexNode<T>::RangeSearch(const DataSet& dataset, const Config& cfg, const Bi
         for (auto& fut : futs) {
             fut.wait();
         }
+        LOG_KNOWHERE_INFO_ << "CYD - " << __FILE__ << ", " << __FUNCTION__ << ":" << __LINE__;
         GetRangeSearchResult(result_dist_array, result_id_array, is_ip, nq, radius, range_filter, distances, ids, lims);
     } catch (const std::exception& e) {
         LOG_KNOWHERE_WARNING_ << "faiss inner error: " << e.what();

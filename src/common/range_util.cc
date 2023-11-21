@@ -114,8 +114,8 @@ GetRangeSearchResult(const std::vector<std::vector<float>>& result_distances,
     }
 
     size_t total_valid = lims[nq];
-    LOG_KNOWHERE_DEBUG_ << "Range search: is_ip " << (is_ip ? "True" : "False") << ", radius " << radius
-                        << ", range_filter " << range_filter << ", total result num " << total_valid;
+    LOG_KNOWHERE_INFO_ << "CYD - Range search: is_ip " << (is_ip ? "True" : "False") << ", radius " << radius
+                       << ", range_filter " << range_filter << ", total result num " << total_valid;
 
     distances = new float[total_valid];
     labels = new int64_t[total_valid];
@@ -123,6 +123,9 @@ GetRangeSearchResult(const std::vector<std::vector<float>>& result_distances,
     for (auto i = 0; i < nq; i++) {
         std::copy_n(result_distances[i].data(), lims[i + 1] - lims[i], distances + lims[i]);
         std::copy_n(result_labels[i].data(), lims[i + 1] - lims[i], labels + lims[i]);
+    }
+    if (total_valid >= 3) {
+        LOG_KNOWHERE_INFO_ << "CYD - " << distances[0] << ", " << distances[1] << ", " << distances[2];
     }
 }
 

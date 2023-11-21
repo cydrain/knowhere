@@ -326,6 +326,7 @@ BruteForce::RangeSearch(const DataSetPtr base_dataset, const DataSetPtr query_da
     int64_t* ids = nullptr;
     float* distances = nullptr;
     size_t* lims = nullptr;
+    LOG_KNOWHERE_INFO_ << "CYD - " << __FILE__ << ", " << __FUNCTION__ << ":" << __LINE__;
     GetRangeSearchResult(result_dist_array, result_id_array, is_ip, nq, radius, range_filter, distances, ids, lims);
     return GenResultDataSet(nq, ids, distances, lims);
 }

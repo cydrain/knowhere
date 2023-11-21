@@ -639,6 +639,7 @@ DiskANNIndexNode<T>::RangeSearch(const DataSet& dataset, const Config& cfg, cons
         return expected<DataSetPtr>::Err(Status::diskann_inner_error, "some search failed");
     }
 
+    LOG_KNOWHERE_INFO_ << "CYD - " << __FILE__ << ", " << __FUNCTION__ << ":" << __LINE__;
     GetRangeSearchResult(result_dist_array, result_id_array, is_ip, nq, radius, search_conf.range_filter.value(),
                          p_dist, p_id, p_lims);
     return GenResultDataSet(nq, p_id, p_dist, p_lims);
