@@ -575,6 +575,7 @@ DiskANNIndexNode<T>::Search(const DataSet& dataset, const Config& cfg, const Bit
     }
 
     auto res = GenResultDataSet(nq, k, p_id, p_dist);
+    LOG_KNOWHERE_INFO_ << "CYD - " << __FILE__ << ":" << __LINE__ << " " << p_id[0] << ", " << p_dist[0];
 
     // set visit_info json string into result dataset
     if (feder_result != nullptr) {
