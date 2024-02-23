@@ -89,7 +89,7 @@ TEST_CASE("Test All GPU Index", "[search]") {
             make_tuple(knowhere::IndexEnum::INDEX_RAFT_IVFPQ, refined_gen(ivfpq_gen)),
             make_tuple(knowhere::IndexEnum::INDEX_RAFT_CAGRA, cagra_gen),
         }));
-        auto idx = knowhere::IndexFactory::Instance().Create<knowhere::fp32>(name, version);
+        auto idx = knowhere::IndexFactory::Instance().Create(name, version);
         auto cfg_json = gen().dump();
         CAPTURE(name, cfg_json);
         knowhere::Json json = knowhere::Json::parse(cfg_json);
@@ -117,7 +117,7 @@ TEST_CASE("Test All GPU Index", "[search]") {
             make_tuple(knowhere::IndexEnum::INDEX_RAFT_IVFPQ, refined_gen(ivfpq_gen)),
             make_tuple(knowhere::IndexEnum::INDEX_RAFT_CAGRA, cagra_gen),
         }));
-        auto idx = knowhere::IndexFactory::Instance().Create<knowhere::fp32>(name, version);
+        auto idx = knowhere::IndexFactory::Instance().Create(name, version);
         auto cfg_json = gen().dump();
         CAPTURE(name, cfg_json);
         knowhere::Json json = knowhere::Json::parse(cfg_json);
@@ -136,7 +136,7 @@ TEST_CASE("Test All GPU Index", "[search]") {
                 knowhere::BitsetView bitset(bitset_data.data(), nb);
                 auto results = idx.Search(*query_ds, json, bitset);
                 REQUIRE(results.has_value());
-                auto gt = knowhere::BruteForce::Search<knowhere::fp32>(train_ds, query_ds, json, bitset);
+                auto gt = knowhere::BruteForce::Search(train_ds, query_ds, json, bitset);
                 float recall = GetKNNRecall(*gt.value(), *results.value());
                 if (percentage == 0.98f) {
                     REQUIRE(recall > 0.4f);
@@ -157,7 +157,7 @@ TEST_CASE("Test All GPU Index", "[search]") {
             make_tuple(knowhere::IndexEnum::INDEX_RAFT_IVFPQ, refined_gen(ivfpq_gen)),
             make_tuple(knowhere::IndexEnum::INDEX_RAFT_CAGRA, cagra_gen),
         }));
-        auto idx = knowhere::IndexFactory::Instance().Create<knowhere::fp32>(name, version);
+        auto idx = knowhere::IndexFactory::Instance().Create(name, version);
         auto cfg_json = gen().dump();
         CAPTURE(name, cfg_json);
         knowhere::Json json = knowhere::Json::parse(cfg_json);
@@ -173,7 +173,7 @@ TEST_CASE("Test All GPU Index", "[search]") {
             json[knowhere::meta::TOPK] = std::get<0>(topKTuple);
             auto results = idx.Search(*query_ds, json, nullptr);
             REQUIRE(results.has_value());
-            auto gt = knowhere::BruteForce::Search<knowhere::fp32>(train_ds, query_ds, json, nullptr);
+            auto gt = knowhere::BruteForce::Search(train_ds, query_ds, json, nullptr);
             float recall = GetKNNRecall(*gt.value(), *results.value());
             REQUIRE(recall >= std::get<1>(topKTuple));
         }
@@ -190,7 +190,7 @@ TEST_CASE("Test All GPU Index", "[search]") {
             make_tuple(knowhere::IndexEnum::INDEX_RAFT_CAGRA, cagra_gen),
         }));
 
-        auto idx = knowhere::IndexFactory::Instance().Create<knowhere::fp32>(name, version);
+        auto idx = knowhere::IndexFactory::Instance().Create(name, version);
         auto cfg_json = gen().dump();
         CAPTURE(name, cfg_json);
         knowhere::Json json = knowhere::Json::parse(cfg_json);
@@ -201,7 +201,7 @@ TEST_CASE("Test All GPU Index", "[search]") {
         REQUIRE(res == knowhere::Status::success);
         knowhere::BinarySet bs;
         idx.Serialize(bs);
-        auto idx_ = knowhere::IndexFactory::Instance().Create<knowhere::fp32>(name, version);
+        auto idx_ = knowhere::IndexFactory::Instance().Create(name, version);
         idx_.Deserialize(bs);
         auto results = idx_.Search(*query_ds, json, nullptr);
         REQUIRE(results.has_value());
@@ -221,7 +221,7 @@ TEST_CASE("Test All GPU Index", "[search]") {
              make_tuple(knowhere::IndexEnum::INDEX_RAFT_IVFPQ, refined_gen(ivfpq_gen)),
              make_tuple(knowhere::IndexEnum::INDEX_RAFT_CAGRA, cagra_gen)}));
         auto rows = 16;
-        auto idx = knowhere::IndexFactory::Instance().Create<knowhere::fp32>(name, version);
+        auto idx = knowhere::IndexFactory::Instance().Create(name, version);
         auto cfg_json = gen().dump();
         CAPTURE(name, cfg_json);
         knowhere::Json json = knowhere::Json::parse(cfg_json);
@@ -236,7 +236,7 @@ TEST_CASE("Test All GPU Index", "[search]") {
         knowhere::BitsetView bitset(bitset_data.data(), rows);
         auto results = idx.Search(*train_ds, json, bitset);
         REQUIRE(results.has_value());
-        auto gt = knowhere::BruteForce::Search<knowhere::fp32>(train_ds, train_ds, json, bitset);
+        auto gt = knowhere::BruteForce::Search(train_ds, train_ds, json, bitset);
         float recall = GetKNNRecall(*gt.value(), *results.value());
         // Due to issues with the RAFT GPU impl of invalid values, index 0 is temporarily not being checked.
         REQUIRE(recall >= 0.9f);

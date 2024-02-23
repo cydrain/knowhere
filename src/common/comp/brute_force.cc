@@ -36,22 +36,16 @@ namespace knowhere {
 /* knowhere wrapper API to call faiss brute force search for all metric types */
 
 class BruteForceConfig : public BaseConfig {};
-template <typename DataType>
+
 expected<DataSetPtr>
 BruteForce::Search(const DataSetPtr base_dataset, const DataSetPtr query_dataset, const Json& config,
                    const BitsetView& bitset) {
-    DataSetPtr base(base_dataset);
-    DataSetPtr query(query_dataset);
-    if constexpr (!std::is_same_v<DataType, typename MockData<DataType>::type>) {
-        base = data_type_conversion<DataType, typename MockData<DataType>::type>(*base_dataset);
-        query = data_type_conversion<DataType, typename MockData<DataType>::type>(*query_dataset);
-    }
-    auto xb = base->GetTensor();
-    auto nb = base->GetRows();
-    auto dim = base->GetDim();
+    auto xb = base_dataset->GetTensor();
+    auto nb = base_dataset->GetRows();
+    auto dim = base_dataset->GetDim();
 
-    auto xq = query->GetTensor();
-    auto nq = query->GetRows();
+    auto xq = query_dataset->GetTensor();
+    auto nq = query_dataset->GetRows();
 
     BruteForceConfig cfg;
     std::string msg;
@@ -164,22 +158,15 @@ BruteForce::Search(const DataSetPtr base_dataset, const DataSetPtr query_dataset
     return res;
 }
 
-template <typename DataType>
 Status
 BruteForce::SearchWithBuf(const DataSetPtr base_dataset, const DataSetPtr query_dataset, int64_t* ids, float* dis,
                           const Json& config, const BitsetView& bitset) {
-    DataSetPtr base(base_dataset);
-    DataSetPtr query(query_dataset);
-    if constexpr (!std::is_same_v<DataType, typename MockData<DataType>::type>) {
-        base = data_type_conversion<DataType, typename MockData<DataType>::type>(*base_dataset);
-        query = data_type_conversion<DataType, typename MockData<DataType>::type>(*query_dataset);
-    }
-    auto xb = base->GetTensor();
-    auto nb = base->GetRows();
-    auto dim = base->GetDim();
+    auto xb = base_dataset->GetTensor();
+    auto nb = base_dataset->GetRows();
+    auto dim = base_dataset->GetDim();
 
-    auto xq = query->GetTensor();
-    auto nq = query->GetRows();
+    auto xq = query_dataset->GetTensor();
+    auto nq = query_dataset->GetRows();
 
     BruteForceConfig cfg;
     RETURN_IF_ERROR(Config::Load(cfg, config, knowhere::SEARCH));
@@ -286,22 +273,15 @@ BruteForce::SearchWithBuf(const DataSetPtr base_dataset, const DataSetPtr query_
 
 /** knowhere wrapper API to call faiss brute force range search for all metric types
  */
-template <typename DataType>
 expected<DataSetPtr>
 BruteForce::RangeSearch(const DataSetPtr base_dataset, const DataSetPtr query_dataset, const Json& config,
                         const BitsetView& bitset) {
-    DataSetPtr base(base_dataset);
-    DataSetPtr query(query_dataset);
-    if constexpr (!std::is_same_v<DataType, typename MockData<DataType>::type>) {
-        base = data_type_conversion<DataType, typename MockData<DataType>::type>(*base_dataset);
-        query = data_type_conversion<DataType, typename MockData<DataType>::type>(*query_dataset);
-    }
-    auto xb = base->GetTensor();
-    auto nb = base->GetRows();
-    auto dim = base->GetDim();
+    auto xb = base_dataset->GetTensor();
+    auto nb = base_dataset->GetRows();
+    auto dim = base_dataset->GetDim();
 
-    auto xq = query->GetTensor();
-    auto nq = query->GetRows();
+    auto xq = query_dataset->GetTensor();
+    auto nq = query_dataset->GetRows();
 
     BruteForceConfig cfg;
     std::string msg;
@@ -589,16 +569,15 @@ class BruteForceIterator : public IndexNode::iterator {
     size_t sort_size_ = 0;
 };
 
-template <typename DataType>
 expected<std::vector<std::shared_ptr<IndexNode::iterator>>>
 BruteForce::AnnIterator(const DataSetPtr base_dataset, const DataSetPtr query_dataset, const Json& config,
                         const BitsetView& bitset) {
     DataSetPtr base(base_dataset);
     DataSetPtr query(query_dataset);
-    if constexpr (!std::is_same_v<DataType, typename MockData<DataType>::type>) {
-        base = data_type_conversion<DataType, typename MockData<DataType>::type>(*base_dataset);
-        query = data_type_conversion<DataType, typename MockData<DataType>::type>(*query_dataset);
-    }
+    // if constexpr (!std::is_same_v<DataType, typename MockData<DataType>::type>) {
+    //     base = data_type_conversion<DataType, typename MockData<DataType>::type>(*base_dataset);
+    //     query = data_type_conversion<DataType, typename MockData<DataType>::type>(*query_dataset);
+    // }
     auto xb = base->GetTensor();
     auto nb = base->GetRows();
     auto dim = base->GetDim();
@@ -690,65 +669,3 @@ BruteForce::AnnIterator(const DataSetPtr base_dataset, const DataSetPtr query_da
 }
 
 }  // namespace knowhere
-template knowhere::expected<knowhere::DataSetPtr>
-knowhere::BruteForce::Search<knowhere::fp32>(const knowhere::DataSetPtr base_dataset,
-                                             const knowhere::DataSetPtr query_dataset, const knowhere::Json& config,
-                                             const knowhere::BitsetView& bitset);
-template knowhere::expected<knowhere::DataSetPtr>
-knowhere::BruteForce::Search<knowhere::fp16>(const knowhere::DataSetPtr base_dataset,
-                                             const knowhere::DataSetPtr query_dataset, const knowhere::Json& config,
-                                             const knowhere::BitsetView& bitset);
-template knowhere::expected<knowhere::DataSetPtr>
-knowhere::BruteForce::Search<knowhere::bf16>(const knowhere::DataSetPtr base_dataset,
-                                             const knowhere::DataSetPtr query_dataset, const knowhere::Json& config,
-                                             const knowhere::BitsetView& bitset);
-template knowhere::expected<knowhere::DataSetPtr>
-knowhere::BruteForce::Search<knowhere::bin1>(const knowhere::DataSetPtr base_dataset,
-                                             const knowhere::DataSetPtr query_dataset, const knowhere::Json& config,
-                                             const knowhere::BitsetView& bitset);
-template knowhere::Status
-knowhere::BruteForce::SearchWithBuf<knowhere::fp32>(const knowhere::DataSetPtr base_dataset,
-                                                    const knowhere::DataSetPtr query_dataset, int64_t* ids, float* dis,
-                                                    const knowhere::Json& config, const knowhere::BitsetView& bitset);
-template knowhere::Status
-knowhere::BruteForce::SearchWithBuf<knowhere::fp16>(const knowhere::DataSetPtr base_dataset,
-                                                    const knowhere::DataSetPtr query_dataset, int64_t* ids, float* dis,
-                                                    const knowhere::Json& config, const knowhere::BitsetView& bitset);
-template knowhere::Status
-knowhere::BruteForce::SearchWithBuf<knowhere::bf16>(const knowhere::DataSetPtr base_dataset,
-                                                    const knowhere::DataSetPtr query_dataset, int64_t* ids, float* dis,
-                                                    const knowhere::Json& config, const knowhere::BitsetView& bitset);
-template knowhere::Status
-knowhere::BruteForce::SearchWithBuf<knowhere::bin1>(const knowhere::DataSetPtr base_dataset,
-                                                    const knowhere::DataSetPtr query_dataset, int64_t* ids, float* dis,
-                                                    const knowhere::Json& config, const knowhere::BitsetView& bitset);
-
-template knowhere::expected<knowhere::DataSetPtr>
-knowhere::BruteForce::RangeSearch<knowhere::fp32>(const knowhere::DataSetPtr base_dataset,
-                                                  const knowhere::DataSetPtr query_dataset,
-                                                  const knowhere::Json& config, const knowhere::BitsetView& bitset);
-template knowhere::expected<knowhere::DataSetPtr>
-knowhere::BruteForce::RangeSearch<knowhere::fp16>(const knowhere::DataSetPtr base_dataset,
-                                                  const knowhere::DataSetPtr query_dataset,
-                                                  const knowhere::Json& config, const knowhere::BitsetView& bitset);
-template knowhere::expected<knowhere::DataSetPtr>
-knowhere::BruteForce::RangeSearch<knowhere::bf16>(const knowhere::DataSetPtr base_dataset,
-                                                  const knowhere::DataSetPtr query_dataset,
-                                                  const knowhere::Json& config, const knowhere::BitsetView& bitset);
-template knowhere::expected<knowhere::DataSetPtr>
-knowhere::BruteForce::RangeSearch<knowhere::bin1>(const knowhere::DataSetPtr base_dataset,
-                                                  const knowhere::DataSetPtr query_dataset,
-                                                  const knowhere::Json& config, const knowhere::BitsetView& bitset);
-
-template knowhere::expected<std::vector<std::shared_ptr<knowhere::IndexNode::iterator>>>
-knowhere::BruteForce::AnnIterator<knowhere::fp32>(const knowhere::DataSetPtr base_dataset,
-                                                  const knowhere::DataSetPtr query_dataset,
-                                                  const knowhere::Json& config, const knowhere::BitsetView& bitset);
-template knowhere::expected<std::vector<std::shared_ptr<knowhere::IndexNode::iterator>>>
-knowhere::BruteForce::AnnIterator<knowhere::fp16>(const knowhere::DataSetPtr base_dataset,
-                                                  const knowhere::DataSetPtr query_dataset,
-                                                  const knowhere::Json& config, const knowhere::BitsetView& bitset);
-template knowhere::expected<std::vector<std::shared_ptr<knowhere::IndexNode::iterator>>>
-knowhere::BruteForce::AnnIterator<knowhere::bf16>(const knowhere::DataSetPtr base_dataset,
-                                                  const knowhere::DataSetPtr query_dataset,
-                                                  const knowhere::Json& config, const knowhere::BitsetView& bitset);

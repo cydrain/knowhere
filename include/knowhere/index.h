@@ -19,6 +19,7 @@
 #include "knowhere/index_node.h"
 
 namespace knowhere {
+
 template <typename T1>
 class Index {
  public:

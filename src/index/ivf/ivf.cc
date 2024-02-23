@@ -29,7 +29,6 @@
 #include "knowhere/expected.h"
 #include "knowhere/factory.h"
 #include "knowhere/feder/IVFFlat.h"
-#include "knowhere/index_node_data_mock_wrapper.h"
 #include "knowhere/log.h"
 #include "knowhere/utils.h"
 
@@ -47,7 +46,7 @@ struct IndexDispatch<faiss::IndexIVFFlat> {
     using Tag = IVFFlatTag;
 };
 
-template <typename DataType, typename IndexType>
+template <typename IndexType>
 class IvfIndexNode : public IndexNode {
  public:
     IvfIndexNode(const int32_t version, const Object& object) : IndexNode(version), index_(nullptr) {
@@ -58,8 +57,6 @@ class IvfIndexNode : public IndexNode {
                           std::is_same<IndexType, faiss::IndexBinaryIVF>::value ||
                           std::is_same<IndexType, faiss::IndexScaNN>::value,
                       "not support");
-        static_assert(std::is_same_v<DataType, fp32> || std::is_same_v<DataType, bin1>,
-                      "IvfIndexNode only support float/bianry");
         search_pool_ = ThreadPool::GetGlobalSearchThreadPool();
         build_pool_ = ThreadPool::GetGlobalBuildThreadPool();
     }
@@ -347,9 +344,9 @@ to_index_flat(std::unique_ptr<faiss::IndexFlat>&& index) {
 
 }  // namespace
 
-template <typename DataType, typename IndexType>
+template <typename IndexType>
 Status
-IvfIndexNode<DataType, IndexType>::Train(const DataSet& dataset, const Config& cfg) {
+IvfIndexNode<IndexType>::Train(const DataSet& dataset, const Config& cfg) {
     // use build_pool_ to make sure the OMP threads spawded by index_->train etc
     // can inherit the low nice value of threads in build_pool_.
     auto tryObj = build_pool_->push([&] { return TrainInternal(dataset, cfg); }).getTry();
@@ -360,9 +357,9 @@ IvfIndexNode<DataType, IndexType>::Train(const DataSet& dataset, const Config& c
     return Status::faiss_inner_error;
 }
 
-template <typename DataType, typename IndexType>
+template <typename IndexType>
 Status
-IvfIndexNode<DataType, IndexType>::TrainInternal(const DataSet& dataset, const Config& cfg) {
+IvfIndexNode<IndexType>::TrainInternal(const DataSet& dataset, const Config& cfg) {
     const BaseConfig& base_cfg = static_cast<const IvfConfig&>(cfg);
     std::unique_ptr<ThreadPool::ScopedOmpSetter> setter;
     if (base_cfg.num_build_thread.has_value()) {
@@ -540,9 +537,9 @@ IvfIndexNode<DataType, IndexType>::TrainInternal(const DataSet& dataset, const C
     return Status::success;
 }
 
-template <typename DataType, typename IndexType>
+template <typename IndexType>
 Status
-IvfIndexNode<DataType, IndexType>::Add(const DataSet& dataset, const Config& cfg) {
+IvfIndexNode<IndexType>::Add(const DataSet& dataset, const Config& cfg) {
     if (!this->index_) {
         LOG_KNOWHERE_ERROR_ << "Can not add data to empty IVF index.";
         return Status::empty_index;
@@ -574,9 +571,9 @@ IvfIndexNode<DataType, IndexType>::Add(const DataSet& dataset, const Config& cfg
     return Status::success;
 }
 
-template <typename DataType, typename IndexType>
+template <typename IndexType>
 expected<DataSetPtr>
-IvfIndexNode<DataType, IndexType>::Search(const DataSet& dataset, const Config& cfg, const BitsetView& bitset) const {
+IvfIndexNode<IndexType>::Search(const DataSet& dataset, const Config& cfg, const BitsetView& bitset) const {
     if (!this->index_) {
         LOG_KNOWHERE_WARNING_ << "search on empty index";
         return expected<DataSetPtr>::Err(Status::empty_index, "index not loaded");
@@ -693,10 +690,9 @@ IvfIndexNode<DataType, IndexType>::Search(const DataSet& dataset, const Config& 
     return res;
 }
 
-template <typename DataType, typename IndexType>
+template <typename IndexType>
 expected<DataSetPtr>
-IvfIndexNode<DataType, IndexType>::RangeSearch(const DataSet& dataset, const Config& cfg,
-                                               const BitsetView& bitset) const {
+IvfIndexNode<IndexType>::RangeSearch(const DataSet& dataset, const Config& cfg, const BitsetView& bitset) const {
     if (!this->index_) {
         LOG_KNOWHERE_WARNING_ << "range search on empty index";
         return expected<DataSetPtr>::Err(Status::empty_index, "index not loaded");
@@ -813,10 +809,9 @@ IvfIndexNode<DataType, IndexType>::RangeSearch(const DataSet& dataset, const Con
     return GenResultDataSet(nq, ids, distances, lims);
 }
 
-template <typename DataType, typename IndexType>
+template <typename IndexType>
 expected<std::vector<std::shared_ptr<IndexNode::iterator>>>
-IvfIndexNode<DataType, IndexType>::AnnIterator(const DataSet& dataset, const Config& cfg,
-                                               const BitsetView& bitset) const {
+IvfIndexNode<IndexType>::AnnIterator(const DataSet& dataset, const Config& cfg, const BitsetView& bitset) const {
     if (!index_) {
         LOG_KNOWHERE_WARNING_ << "creating iterator on empty index";
         return expected<std::vector<std::shared_ptr<IndexNode::iterator>>>::Err(Status::empty_index,
@@ -875,9 +870,9 @@ IvfIndexNode<DataType, IndexType>::AnnIterator(const DataSet& dataset, const Con
     }
 }
 
-template <typename DataType, typename IndexType>
+template <typename IndexType>
 expected<DataSetPtr>
-IvfIndexNode<DataType, IndexType>::GetVectorByIds(const DataSet& dataset) const {
+IvfIndexNode<IndexType>::GetVectorByIds(const DataSet& dataset) const {
     if (!this->index_) {
         return expected<DataSetPtr>::Err(Status::empty_index, "index not loaded");
     }
@@ -951,9 +946,9 @@ IvfIndexNode<DataType, IndexType>::GetVectorByIds(const DataSet& dataset) const 
     }
 }
 
-template <typename DataType, typename IndexType>
+template <typename IndexType>
 expected<DataSetPtr>
-IvfIndexNode<DataType, IndexType>::GetIndexMetaImpl(const Config& config, IVFFlatTag) const {
+IvfIndexNode<IndexType>::GetIndexMetaImpl(const Config& config, IVFFlatTag) const {
     if (!index_) {
         LOG_KNOWHERE_WARNING_ << "get index meta on empty index";
         return expected<DataSetPtr>::Err(Status::empty_index, "index not loaded");
@@ -990,9 +985,9 @@ IvfIndexNode<DataType, IndexType>::GetIndexMetaImpl(const Config& config, IVFFla
     return GenResultDataSet(json_meta.dump(), json_id_set.dump());
 }
 
-template <typename DataType, typename IndexType>
+template <typename IndexType>
 Status
-IvfIndexNode<DataType, IndexType>::SerializeImpl(BinarySet& binset, IVFBaseTag) const {
+IvfIndexNode<IndexType>::SerializeImpl(BinarySet& binset, IVFBaseTag) const {
     try {
         MemoryIOWriter writer;
         if constexpr (std::is_same<IndexType, faiss::IndexBinaryIVF>::value) {
@@ -1009,9 +1004,9 @@ IvfIndexNode<DataType, IndexType>::SerializeImpl(BinarySet& binset, IVFBaseTag) 
     }
 }
 
-template <typename DataType, typename IndexType>
+template <typename IndexType>
 Status
-IvfIndexNode<DataType, IndexType>::SerializeImpl(BinarySet& binset, IVFFlatTag) const {
+IvfIndexNode<IndexType>::SerializeImpl(BinarySet& binset, IVFFlatTag) const {
     try {
         MemoryIOWriter writer;
         LOG_KNOWHERE_INFO_ << "request version " << this->version_.VersionNumber();
@@ -1053,9 +1048,9 @@ IvfIndexNode<DataType, IndexType>::SerializeImpl(BinarySet& binset, IVFFlatTag) 
     }
 }
 
-template <typename DataType, typename IndexType>
+template <typename IndexType>
 Status
-IvfIndexNode<DataType, IndexType>::Deserialize(const BinarySet& binset, const Config& config) {
+IvfIndexNode<IndexType>::Deserialize(const BinarySet& binset, const Config& config) {
     std::vector<std::string> names = {"IVF",        // compatible with knowhere-1.x
                                       "BinaryIVF",  // compatible with knowhere-1.x
                                       Type()};
@@ -1095,9 +1090,9 @@ IvfIndexNode<DataType, IndexType>::Deserialize(const BinarySet& binset, const Co
     return Status::success;
 }
 
-template <typename DataType, typename IndexType>
+template <typename IndexType>
 Status
-IvfIndexNode<DataType, IndexType>::DeserializeFromFile(const std::string& filename, const Config& config) {
+IvfIndexNode<IndexType>::DeserializeFromFile(const std::string& filename, const Config& config) {
     auto cfg = static_cast<const knowhere::BaseConfig&>(config);
 
     int io_flags = 0;
@@ -1122,37 +1117,42 @@ IvfIndexNode<DataType, IndexType>::DeserializeFromFile(const std::string& filena
     }
     return Status::success;
 }
-// bin1
-KNOWHERE_SIMPLE_REGISTER_GLOBAL(IVFBIN, IvfIndexNode, bin1, faiss::IndexBinaryIVF);
-KNOWHERE_SIMPLE_REGISTER_GLOBAL(BIN_IVF_FLAT, IvfIndexNode, bin1, faiss::IndexBinaryIVF);
-// fp32
-KNOWHERE_SIMPLE_REGISTER_GLOBAL(IVFFLAT, IvfIndexNode, fp32, faiss::IndexIVFFlat);
-KNOWHERE_SIMPLE_REGISTER_GLOBAL(IVF_FLAT, IvfIndexNode, fp32, faiss::IndexIVFFlat);
-KNOWHERE_SIMPLE_REGISTER_GLOBAL(IVFFLATCC, IvfIndexNode, fp32, faiss::IndexIVFFlatCC);
-KNOWHERE_SIMPLE_REGISTER_GLOBAL(IVF_FLAT_CC, IvfIndexNode, fp32, faiss::IndexIVFFlatCC);
-KNOWHERE_SIMPLE_REGISTER_GLOBAL(SCANN, IvfIndexNode, fp32, faiss::IndexScaNN);
-KNOWHERE_SIMPLE_REGISTER_GLOBAL(IVFPQ, IvfIndexNode, fp32, faiss::IndexIVFPQ);
-KNOWHERE_SIMPLE_REGISTER_GLOBAL(IVF_PQ, IvfIndexNode, fp32, faiss::IndexIVFPQ);
-KNOWHERE_SIMPLE_REGISTER_GLOBAL(IVFSQ, IvfIndexNode, fp32, faiss::IndexIVFScalarQuantizer);
-KNOWHERE_SIMPLE_REGISTER_GLOBAL(IVF_SQ8, IvfIndexNode, fp32, faiss::IndexIVFScalarQuantizer);
-// fp16
-KNOWHERE_MOCK_REGISTER_GLOBAL(IVFFLAT, IvfIndexNode, fp16, faiss::IndexIVFFlat);
-KNOWHERE_MOCK_REGISTER_GLOBAL(IVF_FLAT, IvfIndexNode, fp16, faiss::IndexIVFFlat);
-KNOWHERE_MOCK_REGISTER_GLOBAL(IVFFLATCC, IvfIndexNode, fp16, faiss::IndexIVFFlatCC);
-KNOWHERE_MOCK_REGISTER_GLOBAL(IVF_FLAT_CC, IvfIndexNode, fp16, faiss::IndexIVFFlatCC);
-KNOWHERE_MOCK_REGISTER_GLOBAL(SCANN, IvfIndexNode, fp16, faiss::IndexScaNN);
-KNOWHERE_MOCK_REGISTER_GLOBAL(IVFPQ, IvfIndexNode, fp16, faiss::IndexIVFPQ);
-KNOWHERE_MOCK_REGISTER_GLOBAL(IVF_PQ, IvfIndexNode, fp16, faiss::IndexIVFPQ);
-KNOWHERE_MOCK_REGISTER_GLOBAL(IVFSQ, IvfIndexNode, fp16, faiss::IndexIVFScalarQuantizer);
-KNOWHERE_MOCK_REGISTER_GLOBAL(IVF_SQ8, IvfIndexNode, fp16, faiss::IndexIVFScalarQuantizer);
-// bf16
-KNOWHERE_MOCK_REGISTER_GLOBAL(IVFFLAT, IvfIndexNode, bf16, faiss::IndexIVFFlat);
-KNOWHERE_MOCK_REGISTER_GLOBAL(IVF_FLAT, IvfIndexNode, bf16, faiss::IndexIVFFlat);
-KNOWHERE_MOCK_REGISTER_GLOBAL(IVFFLATCC, IvfIndexNode, bf16, faiss::IndexIVFFlatCC);
-KNOWHERE_MOCK_REGISTER_GLOBAL(IVF_FLAT_CC, IvfIndexNode, bf16, faiss::IndexIVFFlatCC);
-KNOWHERE_MOCK_REGISTER_GLOBAL(SCANN, IvfIndexNode, bf16, faiss::IndexScaNN);
-KNOWHERE_MOCK_REGISTER_GLOBAL(IVFPQ, IvfIndexNode, bf16, faiss::IndexIVFPQ);
-KNOWHERE_MOCK_REGISTER_GLOBAL(IVF_PQ, IvfIndexNode, bf16, faiss::IndexIVFPQ);
-KNOWHERE_MOCK_REGISTER_GLOBAL(IVFSQ, IvfIndexNode, bf16, faiss::IndexIVFScalarQuantizer);
-KNOWHERE_MOCK_REGISTER_GLOBAL(IVF_SQ8, IvfIndexNode, bf16, faiss::IndexIVFScalarQuantizer);
+
+KNOWHERE_REGISTER_GLOBAL(IVFBIN, [](const int32_t& version, const Object& object) {
+    return Index<IvfIndexNode<faiss::IndexBinaryIVF>>::Create(version, object);
+});
+
+KNOWHERE_REGISTER_GLOBAL(BIN_IVF_FLAT, [](const int32_t& version, const Object& object) {
+    return Index<IvfIndexNode<faiss::IndexBinaryIVF>>::Create(version, object);
+});
+
+KNOWHERE_REGISTER_GLOBAL(IVFFLAT, [](const int32_t& version, const Object& object) {
+    return Index<IvfIndexNode<faiss::IndexIVFFlat>>::Create(version, object);
+});
+KNOWHERE_REGISTER_GLOBAL(IVF_FLAT, [](const int32_t& version, const Object& object) {
+    return Index<IvfIndexNode<faiss::IndexIVFFlat>>::Create(version, object);
+});
+KNOWHERE_REGISTER_GLOBAL(IVFFLATCC, [](const int32_t& version, const Object& object) {
+    return Index<IvfIndexNode<faiss::IndexIVFFlatCC>>::Create(version, object);
+});
+KNOWHERE_REGISTER_GLOBAL(IVF_FLAT_CC, [](const int32_t& version, const Object& object) {
+    return Index<IvfIndexNode<faiss::IndexIVFFlatCC>>::Create(version, object);
+});
+KNOWHERE_REGISTER_GLOBAL(SCANN, [](const int32_t& version, const Object& object) {
+    return Index<IvfIndexNode<faiss::IndexScaNN>>::Create(version, object);
+});
+KNOWHERE_REGISTER_GLOBAL(IVFPQ, [](const int32_t& version, const Object& object) {
+    return Index<IvfIndexNode<faiss::IndexIVFPQ>>::Create(version, object);
+});
+KNOWHERE_REGISTER_GLOBAL(IVF_PQ, [](const int32_t& version, const Object& object) {
+    return Index<IvfIndexNode<faiss::IndexIVFPQ>>::Create(version, object);
+});
+
+KNOWHERE_REGISTER_GLOBAL(IVFSQ, [](const int32_t& version, const Object& object) {
+    return Index<IvfIndexNode<faiss::IndexIVFScalarQuantizer>>::Create(version, object);
+});
+KNOWHERE_REGISTER_GLOBAL(IVF_SQ8, [](const int32_t& version, const Object& object) {
+    return Index<IvfIndexNode<faiss::IndexIVFScalarQuantizer>>::Create(version, object);
+});
+
 }  // namespace knowhere

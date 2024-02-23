@@ -27,7 +27,7 @@ namespace knowhere {
 
 template <typename T, bool use_wand>
 class SparseInvertedIndexNode : public IndexNode {
-    static_assert(std::is_same_v<T, fp32>, "SparseInvertedIndexNode only support float");
+    static_assert(std::is_same_v<T, float>, "SparseInvertedIndexNode only support float");
 
  public:
     explicit SparseInvertedIndexNode(const int32_t& /*version*/, const Object& /*object*/)
@@ -211,7 +211,12 @@ class SparseInvertedIndexNode : public IndexNode {
     std::shared_ptr<ThreadPool> search_pool_;
 };  // class SparseInvertedIndexNode
 
-KNOWHERE_SIMPLE_REGISTER_GLOBAL(SPARSE_INVERTED_INDEX, SparseInvertedIndexNode, fp32, /*use_wand=*/false);
-KNOWHERE_SIMPLE_REGISTER_GLOBAL(SPARSE_WAND, SparseInvertedIndexNode, fp32, /*use_wand=*/true);
+KNOWHERE_REGISTER_GLOBAL(SPARSE_INVERTED_INDEX, ([](const int32_t& version, const Object& object) {
+                             return Index<SparseInvertedIndexNode<float, false>>::Create(version, object);
+                         }));
+
+KNOWHERE_REGISTER_GLOBAL(SPARSE_WAND, ([](const int32_t& version, const Object& object) {
+                             return Index<SparseInvertedIndexNode<float, true>>::Create(version, object);
+                         }));
 
 }  // namespace knowhere

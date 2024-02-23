@@ -21,8 +21,6 @@
 #include <type_traits>
 #include <vector>
 
-#include "knowhere/operands.h"
-
 namespace knowhere::sparse {
 
 // integer type in SparseRow
@@ -57,7 +55,7 @@ struct IdVal {
 
 template <typename T>
 class SparseRow {
-    static_assert(std::is_same_v<T, fp32>, "SparseRow supports float only");
+    static_assert(std::is_same_v<T, float>, "SparseRow supports float only");
 
  public:
     // construct an SparseRow with memory allocated to hold `count` elements.

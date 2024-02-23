@@ -140,7 +140,7 @@ TEST_CASE("Test Iterator Mem Index With Float Vector", "[float metrics]") {
             {make_tuple(knowhere::IndexEnum::INDEX_HNSW, hnsw_gen),
              make_tuple(knowhere::IndexEnum::INDEX_FAISS_IVFFLAT, ivfflat_gen),
              make_tuple(knowhere::IndexEnum::INDEX_FAISS_IVFFLAT_CC, ivfflatcc_gen)}));
-        auto idx = knowhere::IndexFactory::Instance().Create<knowhere::fp32>(name, version);
+        auto idx = knowhere::IndexFactory::Instance().Create(name, version);
         auto cfg_json = gen().dump();
         CAPTURE(name, cfg_json);
         knowhere::Json json = knowhere::Json::parse(cfg_json);
@@ -171,7 +171,7 @@ TEST_CASE("Test Iterator Mem Index With Float Vector", "[float metrics]") {
             {make_tuple(knowhere::IndexEnum::INDEX_HNSW, hnsw_gen),
              make_tuple(knowhere::IndexEnum::INDEX_FAISS_IVFFLAT, ivfflat_gen),
              make_tuple(knowhere::IndexEnum::INDEX_FAISS_IVFFLAT_CC, ivfflatcc_gen)}));
-        auto idx = knowhere::IndexFactory::Instance().Create<knowhere::fp32>(name, version);
+        auto idx = knowhere::IndexFactory::Instance().Create(name, version);
         auto cfg_json = gen().dump();
         CAPTURE(name, cfg_json);
         knowhere::Json json = knowhere::Json::parse(cfg_json);
@@ -205,7 +205,7 @@ TEST_CASE("Test Iterator Mem Index With Float Vector", "[float metrics]") {
             {make_tuple(knowhere::IndexEnum::INDEX_HNSW, hnsw_gen),
              make_tuple(knowhere::IndexEnum::INDEX_FAISS_IVFFLAT, ivfflat_gen),
              make_tuple(knowhere::IndexEnum::INDEX_FAISS_IVFFLAT_CC, ivfflatcc_gen)}));
-        auto idx = knowhere::IndexFactory::Instance().Create<knowhere::fp32>(name, version);
+        auto idx = knowhere::IndexFactory::Instance().Create(name, version);
         auto cfg_json = gen().dump();
         CAPTURE(name, cfg_json);
         knowhere::Json json = knowhere::Json::parse(cfg_json);
@@ -273,7 +273,7 @@ TEST_CASE("Test Iterator IVFFlatCC With Newly Insert Vectors", "[float metrics] 
         using std::make_tuple;
         auto [name, gen] = GENERATE_REF(table<std::string, std::function<knowhere::Json()>>(
             {make_tuple(knowhere::IndexEnum::INDEX_FAISS_IVFFLAT_CC, ivfflatcc_gen)}));
-        auto idx = knowhere::IndexFactory::Instance().Create<knowhere::fp32>(name, version);
+        auto idx = knowhere::IndexFactory::Instance().Create(name, version);
         auto cfg_json = gen().dump();
         CAPTURE(name, cfg_json, nb_new);
 
@@ -350,13 +350,13 @@ TEST_CASE("Test Iterator Mem Index With Binary Metrics", "[float metrics]") {
         {knowhere::meta::TOPK, topk},
     };
 
-    auto gt = knowhere::BruteForce::Search<knowhere::fp32>(train_ds, query_ds, conf, nullptr);
+    auto gt = knowhere::BruteForce::Search(train_ds, query_ds, conf, nullptr);
     SECTION("Test Search using iterator") {
         using std::make_tuple;
         auto [name, gen] = GENERATE_REF(table<std::string, std::function<knowhere::Json()>>({
             make_tuple(knowhere::IndexEnum::INDEX_HNSW, hnsw_gen),
         }));
-        auto idx = knowhere::IndexFactory::Instance().Create<knowhere::fp32>(name, version);
+        auto idx = knowhere::IndexFactory::Instance().Create(name, version);
         auto cfg_json = gen().dump();
         CAPTURE(name, cfg_json);
         knowhere::Json json = knowhere::Json::parse(cfg_json);
@@ -396,8 +396,8 @@ TEST_CASE("Test Iterator BruteForce With Float Vector", "[float metrics]") {
     };
 
     SECTION("Test Iterator BruteForce") {
-        auto gt = knowhere::BruteForce::Search<knowhere::fp32>(train_ds, query_ds, conf, nullptr);
-        auto iterators = knowhere::BruteForce::AnnIterator<knowhere::fp32>(train_ds, query_ds, conf, nullptr).value();
+        auto gt = knowhere::BruteForce::Search(train_ds, query_ds, conf, nullptr);
+        auto iterators = knowhere::BruteForce::AnnIterator(train_ds, query_ds, conf, nullptr).value();
         AssertBruteForceIteratorResultCorrect(nb, iterators, gt.value());
     }
 
@@ -409,9 +409,8 @@ TEST_CASE("Test Iterator BruteForce With Float Vector", "[float metrics]") {
             for (const auto& gen_func : gen_bitset_funcs) {
                 auto bitset_data = gen_func(nb, percentage * nb);
                 knowhere::BitsetView bitset(bitset_data.data(), nb);
-                auto iterators =
-                    knowhere::BruteForce::AnnIterator<knowhere::fp32>(train_ds, query_ds, conf, bitset).value();
-                auto gt = knowhere::BruteForce::Search<knowhere::fp32>(train_ds, query_ds, conf, bitset);
+                auto iterators = knowhere::BruteForce::AnnIterator(train_ds, query_ds, conf, bitset).value();
+                auto gt = knowhere::BruteForce::Search(train_ds, query_ds, conf, bitset);
                 AssertBruteForceIteratorResultCorrect(nb, iterators, gt.value());
             }
         }
