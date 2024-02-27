@@ -103,6 +103,7 @@ class KnowhereConan(ConanFile):
             self.requires("openblas/0.3.23@milvus/dev")
         if self.options.with_ut:
             self.requires("catch2/3.3.1")
+            self.requires("trompeloeil/47")
         if self.options.with_benchmark:
             self.requires("gtest/1.13.0")
             self.requires("hdf5/1.14.0")
