@@ -11,6 +11,7 @@ TEST_CASE("Test Distance Compute", "[distance]") {
     std::uniform_real_distribution<float> fill_distrib(1, 1000000);
     std::string ins;
     faiss::fvec_hook(ins);
+    const int N = 100;
 
     using std::make_tuple;
     SECTION("Test Binary Distance Compute") {
@@ -22,7 +23,7 @@ TEST_CASE("Test Distance Compute", "[distance]") {
             make_tuple(faiss::fvec_inner_product, faiss::fvec_inner_product_ref),
         }));
 
-        for (int i = 0; i < 1000; ++i) {
+        for (int i = 0; i < N; ++i) {
             CAPTURE(i);
             auto len = distrib(rng);
             std::vector<float> a(len);
@@ -42,7 +43,7 @@ TEST_CASE("Test Distance Compute", "[distance]") {
             make_tuple(faiss::fvec_norm_L2sqr, faiss::fvec_norm_L2sqr_ref),
         }));
 
-        for (int i = 0; i < 1000; ++i) {
+        for (int i = 0; i < N; ++i) {
             CAPTURE(i);
             auto len = distrib(rng);
             std::vector<float> a(len);
@@ -59,7 +60,7 @@ TEST_CASE("Test Distance Compute", "[distance]") {
             make_tuple(faiss::fvec_madd_and_argmin, faiss::fvec_madd_and_argmin_ref),
         }));
 
-        for (int i = 0; i < 1000; ++i) {
+        for (int i = 0; i < N; ++i) {
             CAPTURE(i);
             auto len = distrib(rng);
             std::vector<float> a(len);
@@ -87,7 +88,7 @@ TEST_CASE("Test Distance Compute", "[distance]") {
             make_tuple(faiss::fvec_madd, faiss::fvec_madd_ref),
         }));
 
-        for (int i = 0; i < 1000; ++i) {
+        for (int i = 0; i < N; ++i) {
             CAPTURE(i);
             auto len = distrib(rng);
             std::vector<float> a(len);

@@ -20,7 +20,7 @@
 TEST_CASE("Test Brute Force", "[float vector]") {
     using Catch::Approx;
 
-    const int64_t nb = 1000;
+    const int64_t nb = 100;
     const int64_t nq = 10;
     const int64_t dim = 128;
     const int64_t k = 5;

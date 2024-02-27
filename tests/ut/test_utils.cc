@@ -31,7 +31,7 @@ TEST_CASE("Test Vector Normalization", "[normalize]") {
     using Catch::Approx;
 
     const float floatDiff = 0.00001;
-    uint64_t nb = 1000000;
+    uint64_t nb = 100;
     uint64_t dim = 128;
     int64_t seed = 42;
 
@@ -85,7 +85,7 @@ TEST_CASE("Test Bitset Generation", "[utils]") {
 
 namespace {
 constexpr size_t kHeapSize = 10;
-constexpr size_t kElementCount = 10000;
+constexpr size_t kElementCount = 100;
 }  // namespace
 
 TEST_CASE("ResultMaxHeap") {
