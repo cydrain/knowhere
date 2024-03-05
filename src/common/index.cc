@@ -11,6 +11,8 @@
 
 #include "knowhere/index.h"
 
+#include <iostream>
+
 #include "knowhere/comp/time_recorder.h"
 #include "knowhere/dataset.h"
 #include "knowhere/expected.h"
@@ -90,6 +92,8 @@ Index<T>::Search(const DataSet& dataset, const Json& json, const BitsetView& bit
         span->SetAttribute(meta::ROWS, Count());
         span->SetAttribute(meta::DIM, Dim());
         span->SetAttribute(meta::NQ, dataset.GetRows());
+        LOG_KNOWHERE_INFO_ << "CYD - set TRACE for search";
+        std::cout << "CYD - set TRACE for search" << std::endl;
     }
 
     TimeRecorder rc("Search");
