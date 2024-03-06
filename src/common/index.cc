@@ -82,6 +82,8 @@ Index<T>::Search(const DataSet& dataset, const Json& json, const BitsetView& bit
     const BaseConfig& b_cfg = static_cast<const BaseConfig&>(*cfg);
     std::shared_ptr<tracer::trace::Span> span = nullptr;
     if (b_cfg.trace_id.has_value()) {
+        LOG_KNOWHERE_INFO_ << "CYD - knowhere trace id: " << b_cfg.trace_id.value();
+        LOG_KNOWHERE_INFO_ << "CYD - knowhere span id: " << b_cfg.span_id.value();
         auto trace_id_str = tracer::HexToString(b_cfg.trace_id.value());
         auto span_id_str = tracer::HexToString(b_cfg.span_id.value());
         auto ctx = tracer::TraceContext{(uint8_t*)trace_id_str.c_str(), (uint8_t*)span_id_str.c_str(),
@@ -149,6 +151,8 @@ Index<T>::RangeSearch(const DataSet& dataset, const Json& json, const BitsetView
     const BaseConfig& b_cfg = static_cast<const BaseConfig&>(*cfg);
     std::shared_ptr<tracer::trace::Span> span = nullptr;
     if (b_cfg.trace_id.has_value()) {
+        LOG_KNOWHERE_INFO_ << "CYD - knowhere trace id: " << b_cfg.trace_id.value();
+        LOG_KNOWHERE_INFO_ << "CYD - knowhere span id: " << b_cfg.span_id.value();
         auto trace_id_str = tracer::HexToString(b_cfg.trace_id.value());
         auto span_id_str = tracer::HexToString(b_cfg.span_id.value());
         auto ctx = tracer::TraceContext{(uint8_t*)trace_id_str.c_str(), (uint8_t*)span_id_str.c_str(),
