@@ -68,7 +68,9 @@ if(APPLE)
 endif()
 
 find_package(BLAS REQUIRED)
-
+if(LINUX)
+  set(BLA_VENDOR "")
+endif()
 find_package(LAPACK REQUIRED)
 
 if(__X86_64)
