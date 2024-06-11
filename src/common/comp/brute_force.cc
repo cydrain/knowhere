@@ -274,6 +274,16 @@ BruteForce::SearchWithBuf(const DataSetPtr base_dataset, const DataSetPtr query_
     }
     RETURN_IF_ERROR(WaitAllSuccess(futs));
 
+    {
+        static std::mutex mut;
+        std::lock_guard<std::mutex> lock(mut);
+
+        std::cout << "CYD - KNOWHERE BruteForce::SearchWithBuf, metric type " << cfg.metric_type.value() << ", rows "
+                  << nb << ", nq " << nq << ", res_len " << topk << ", (" << ids[0] << ", " << dis[0] << "), "
+                  << "(" << ids[1] << ", " << dis[1] << "), ... (" << ids[topk - 1] << ", " << dis[topk - 1] << ")"
+                  << std::endl;
+    }
+
 #if defined(NOT_COMPILE_FOR_SWIG) && !defined(KNOWHERE_WITH_LIGHT)
     if (cfg.trace_id.has_value()) {
         span->End();
@@ -437,6 +447,22 @@ BruteForce::RangeSearch(const DataSetPtr base_dataset, const DataSetPtr query_da
     size_t* lims = nullptr;
     GetRangeSearchResult(result_dist_array, result_id_array, is_ip, nq, radius, range_filter, distances, ids, lims);
     auto res = GenResultDataSet(nq, ids, distances, lims);
+
+    {
+        static std::mutex mut;
+        std::lock_guard<std::mutex> lock(mut);
+
+        auto res_len = lims[nq];
+        auto is_ip = cfg.metric_type.value() == metric::IP || cfg.metric_type.value() == metric::COSINE;
+        auto res_sorted = ReGenRangeSearchResult(res, is_ip, nq, res_len);
+        auto ids_sorted = res_sorted->GetIds();
+        auto dist_sorted = res_sorted->GetDistance();
+        std::cout << "CYD - KNOWHERE BruteForce::RangeSearch, metric type " << cfg.metric_type.value() << ", rows "
+                  << nb << ", nq " << nq << ", result len " << res_len << ", (" << ids_sorted[0] << ", "
+                  << dist_sorted[0] << "), "
+                  << "(" << ids_sorted[1] << ", " << dist_sorted[1] << "), ... (" << ids_sorted[res_len - 1] << ", "
+                  << dist_sorted[res_len - 1] << ")" << std::endl;
+    }
 
 #if defined(NOT_COMPILE_FOR_SWIG) && !defined(KNOWHERE_WITH_LIGHT)
     if (cfg.trace_id.has_value()) {
