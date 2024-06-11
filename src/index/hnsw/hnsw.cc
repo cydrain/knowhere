@@ -11,6 +11,7 @@
 
 #include "knowhere/feder/HNSW.h"
 
+#include <iostream>
 #include <new>
 #include <numeric>
 
@@ -368,6 +369,22 @@ class HnswIndexNode : public IndexNode {
                              lims);
 
         auto res = GenResultDataSet(nq, ids, dis, lims);
+
+        {
+            static std::mutex mut;
+            std::lock_guard<std::mutex> lock(mut);
+
+            auto res_len = lims[nq];
+            auto is_ip = hnsw_cfg.metric_type.value() == metric::IP || hnsw_cfg.metric_type.value() == metric::COSINE;
+            auto res_sorted = ReGenRangeSearchResult(res, is_ip, nq, res_len);
+            auto ids_sorted = res_sorted->GetIds();
+            auto dist_sorted = res_sorted->GetDistance();
+            std::cout << "CYD - KNOWHERE HNSW::RangeSearch, metric type " << hnsw_cfg.metric_type.value() << ", rows "
+                      << this->Count() << ", nq " << nq << ", result len " << res_len << ", (" << ids_sorted[0] << ", "
+                      << dist_sorted[0] << "), "
+                      << "(" << ids_sorted[1] << ", " << dist_sorted[1] << "), ... (" << ids_sorted[res_len - 1] << ", "
+                      << dist_sorted[res_len - 1] << ")" << std::endl;
+        }
 
         // set visit_info json string into result dataset
         if (feder_result != nullptr) {

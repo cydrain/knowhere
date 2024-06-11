@@ -855,12 +855,31 @@ IvfIndexNode<DataType, IndexType>::RangeSearch(const DataSet& dataset, const Con
         // wait for the completion
         WaitAllSuccess(futs);
         GetRangeSearchResult(result_dist_array, result_id_array, is_ip, nq, radius, range_filter, distances, ids, lims);
+
     } catch (const std::exception& e) {
         LOG_KNOWHERE_WARNING_ << "faiss inner error: " << e.what();
         return expected<DataSetPtr>::Err(Status::faiss_inner_error, e.what());
     }
 
-    return GenResultDataSet(nq, ids, distances, lims);
+    auto res = GenResultDataSet(nq, ids, distances, lims);
+
+    {
+        static std::mutex mut;
+        std::lock_guard<std::mutex> lock(mut);
+
+        auto res_len = lims[nq];
+        auto is_ip = ivf_cfg.metric_type.value() == metric::IP || ivf_cfg.metric_type.value() == metric::COSINE;
+        auto res_sorted = ReGenRangeSearchResult(res, is_ip, nq, res_len);
+        auto ids_sorted = res_sorted->GetIds();
+        auto dist_sorted = res_sorted->GetDistance();
+        std::cout << "CYD - KNOWHERE IVF_FLAT::RangeSearch, metric type " << ivf_cfg.metric_type.value() << ", rows "
+                  << this->Count() << ", nq " << nq << ", result len " << res_len << ", (" << ids_sorted[0] << ", "
+                  << dist_sorted[0] << "), "
+                  << "(" << ids_sorted[1] << ", " << dist_sorted[1] << "), ... (" << ids_sorted[res_len - 1] << ", "
+                  << dist_sorted[res_len - 1] << ")" << std::endl;
+    }
+
+    return res;
 }
 
 template <typename DataType, typename IndexType>

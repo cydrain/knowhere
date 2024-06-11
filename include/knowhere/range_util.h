@@ -14,6 +14,7 @@
 #include <vector>
 
 #include "knowhere/bitsetview.h"
+#include "knowhere/dataset.h"
 
 namespace knowhere {
 
@@ -30,5 +31,8 @@ void
 GetRangeSearchResult(const std::vector<std::vector<float>>& result_distances,
                      const std::vector<std::vector<int64_t>>& result_labels, const bool is_ip, const int64_t nq,
                      const float radius, const float range_filter, float*& distances, int64_t*& labels, size_t*& lims);
+
+DataSetPtr
+ReGenRangeSearchResult(DataSetPtr data_set, bool is_ip, int64_t nq, int64_t topk);
 
 }  // namespace knowhere
