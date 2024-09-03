@@ -28,7 +28,7 @@ done
 ROOT_DIR="$( cd -P "$( dirname "$SOURCE" )/.." && pwd )"
 
 KNOWHERE_CORE_DIR="${ROOT_DIR}/src"
-KNOWHERE_UNITTEST_DIR="${ROOT_DIR}/build/Release/tests/ut"
+KNOWHERE_UNITTEST_DIR="${ROOT_DIR}/build/Release/tests/ut_v2"
 
 echo "ROOT_DIR = ${ROOT_DIR}"
 echo "KNOWHERE_CORE_DIR = ${KNOWHERE_CORE_DIR}"
@@ -60,7 +60,7 @@ fi
 
 # run unittest
 for test in `ls ${KNOWHERE_UNITTEST_DIR}/*test*`; do
-    echo "Running unittest: ${KNOWHERE_UNITTEST_DIR}/$test"
+    echo "Running unittest: $test"
     # run unittest
     ${test}
     if [ $? -ne 0 ]; then
