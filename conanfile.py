@@ -100,6 +100,7 @@ class KnowhereConan(ConanFile):
             self.requires("libunwind/1.7.2")
         if self.options.with_ut:
             self.requires("catch2/3.3.1")
+            self.requires("trompeloeil/48")
             self.requires("fakeit/2.4.0")
         if self.options.with_benchmark:
             self.requires("gtest/1.13.0")

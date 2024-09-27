@@ -38,6 +38,18 @@ if (NOT Catch2_FOUND)
   FetchContent_MakeAvailable(Catch2)
 endif()
 
+find_package(trompeloeil)
+if (NOT trompeloeil_FOUND)
+  message("trompeloeil not found, fetching trompeloeil from github")
+  Include(FetchContent)
+  FetchContent_Declare(
+    trompeloeil
+    GIT_REPOSITORY https://github.com/rollbear/trompeloeil.git
+    GIT_TAG v48 # or a later release
+  )
+  FetchContent_MakeAvailable(trompeloeil)
+endif()
+
 find_package(fakeit)
 if (NOT fakeit_FOUND)
   message("fakeit not found, fetching fakeit from github")
@@ -56,6 +68,7 @@ set_target_properties(knowhere_tests PROPERTIES
 
 target_link_libraries(knowhere_tests PRIVATE
         Catch2::Catch2WithMain
+        trompeloeil::trompeloeil
         fakeit::fakeit
         atomic
         stdc++fs
