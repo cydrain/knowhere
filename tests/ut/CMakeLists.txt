@@ -38,12 +38,25 @@ if (NOT Catch2_FOUND)
   FetchContent_MakeAvailable(Catch2)
 endif()
 
+find_package(fakeit)
+if (NOT fakeit_FOUND)
+  message("fakeit not found, fetching fakeit from github")
+  Include(FetchContent)
+  FetchContent_Declare(
+    fakeit
+    GIT_REPOSITORY https://github.com/eranpeer/FakeIt.git
+    GIT_TAG 2.4.0 # or a later release
+  )
+  FetchContent_MakeAvailable(fakeit)
+endif()
+
 set_target_properties(knowhere_tests PROPERTIES
   CXX_STANDARD 17
 )
 
 target_link_libraries(knowhere_tests PRIVATE
         Catch2::Catch2WithMain
+        fakeit::fakeit
         atomic
         stdc++fs
         knowhere)
