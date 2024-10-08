@@ -23,6 +23,8 @@
 #include "knowhere/log.h"
 #include "knowhere/range_util.h"
 #include "knowhere/utils.h"
+#include "mock/FaissIndexFlatMock.h"
+#include "mock/index_factory_mock.h"
 
 namespace knowhere {
 
@@ -30,9 +32,10 @@ template <typename DataType, typename IndexType>
 class FlatIndexNode : public IndexNode {
  public:
     FlatIndexNode(const int32_t version, const Object& object) : IndexNode(version), index_(nullptr) {
-        static_assert(
-            std::is_same<IndexType, faiss::IndexFlat>::value || std::is_same<IndexType, faiss::IndexBinaryFlat>::value,
-            "not support");
+        static_assert(std::is_same<IndexType, faiss::IndexFlat>::value ||
+                          std::is_same<IndexType, faiss::IndexFlatMock>::value ||
+                          std::is_same<IndexType, faiss::IndexBinaryFlat>::value,
+                      "not support");
         static_assert(std::is_same_v<DataType, fp32> || std::is_same_v<DataType, bin1>,
                       "FlatIndexNode only support float/binary");
         search_pool_ = ThreadPool::GetGlobalSearchThreadPool();
@@ -53,6 +56,10 @@ class FlatIndexNode : public IndexNode {
         if constexpr (std::is_same<faiss::IndexFlat, IndexType>::value) {
             bool is_cosine = IsMetricType(f_cfg.metric_type.value(), knowhere::metric::COSINE);
             index_ = std::make_unique<faiss::IndexFlat>(dataset->GetDim(), metric.value(), is_cosine);
+        }
+        if constexpr (std::is_same<faiss::IndexFlatMock, IndexType>::value) {
+            bool is_cosine = IsMetricType(f_cfg.metric_type.value(), knowhere::metric::COSINE);
+            index_ = std::make_unique<faiss::IndexFlatMock>(dataset->GetDim(), metric.value(), is_cosine);
         }
         return Status::success;
     }
@@ -381,7 +388,8 @@ class FlatIndexNode : public IndexNode {
 
     std::string
     Type() const override {
-        if constexpr (std::is_same<IndexType, faiss::IndexFlat>::value) {
+        if constexpr (std::is_same<IndexType, faiss::IndexFlat>::value ||
+                      std::is_same<IndexType, faiss::IndexFlatMock>::value) {
             return knowhere::IndexEnum::INDEX_FAISS_IDMAP;
         }
         if constexpr (std::is_same<IndexType, faiss::IndexBinaryFlat>::value) {
@@ -399,4 +407,8 @@ KNOWHERE_SIMPLE_REGISTER_GLOBAL(BINFLAT, FlatIndexNode, bin1, faiss::IndexBinary
 KNOWHERE_SIMPLE_REGISTER_GLOBAL(BIN_FLAT, FlatIndexNode, bin1, faiss::IndexBinaryFlat);
 KNOWHERE_MOCK_REGISTER_GLOBAL(FLAT, FlatIndexNode, fp16, faiss::IndexFlat);
 KNOWHERE_MOCK_REGISTER_GLOBAL(FLAT, FlatIndexNode, bf16, faiss::IndexFlat);
+
+// for test only
+KNOWHERE_SIMPLE_REGISTER_GLOBAL_MOCK(FLAT, FlatIndexNode, fp32, faiss::IndexFlatMock);
+
 }  // namespace knowhere

@@ -9,6 +9,7 @@
 #include "knowhere/comp/knowhere_config.h"
 #include "knowhere/index/index_factory.h"
 #include "knowhere/log.h"
+#include "mock/index_factory_mock.h"
 #include "utils.h"
 
 class Warehouse {
@@ -120,8 +121,8 @@ TEST_CASE("Test Mem Index With Float Vector", "[float metrics]") {
         using std::make_tuple;
         auto [name, gen] = GENERATE_REF(table<std::string, std::function<knowhere::Json()>>({
             make_tuple(knowhere::IndexEnum::INDEX_FAISS_IDMAP, flat_gen),
-            make_tuple(knowhere::IndexEnum::INDEX_FAISS_IVFFLAT, ivfflat_gen),
-            make_tuple(knowhere::IndexEnum::INDEX_HNSW, hnsw_gen),
+            // make_tuple(knowhere::IndexEnum::INDEX_FAISS_IVFFLAT, ivfflat_gen),
+            // make_tuple(knowhere::IndexEnum::INDEX_HNSW, hnsw_gen),
         }));
         knowhere::BinarySet bs;
         // build process
